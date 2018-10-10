@@ -1,7 +1,4 @@
 import psycopg2
-import db_config
-
-db_params = db_config.blockchain_db_config
 
 create_commands = (
         """
@@ -53,7 +50,7 @@ delete_tables = (
         """
 )
 
-def create_tables(db_params, commands):
+def tables_work(db_params, commands):
     """ create tables in the PostgreSQL database"""
     conn = psycopg2.connect(host=db_params["DBHOST"],database=db_params["DBNAME"],
                             user=db_params["DBUSER"], password=db_params["DBPASS"])
@@ -73,18 +70,27 @@ def create_tables(db_params, commands):
         if conn is not None:
             conn.close()
 
-def select_test(db_params, command):
+def select(db_params, command):
     conn = psycopg2.connect(host=db_params["DBHOST"],database=db_params["DBNAME"],
                             user=db_params["DBUSER"], password=db_params["DBPASS"])
     cur = conn.cursor()
     cur.execute(command)
     data = cur.fetchall()
     print(data)
-    for row in data:
-        print(row)
+    #for row in data:
+    #    print(row)
+    # close communication with the PostgreSQL database server
+    cur.close()
+    # commit the changes
+    conn.commit()
     return data
 
-#select_test(db_params,'select * from employee')
-#create_tables(db_params, create_commands)
-
-print("all ok")
+def insert(db_params, command):
+    conn = psycopg2.connect(host=db_params["DBHOST"],database=db_params["DBNAME"],
+                            user=db_params["DBUSER"], password=db_params["DBPASS"])
+    cur = conn.cursor()
+    cur.execute(command)
+    # close communication with the PostgreSQL database server
+    cur.close()
+    # commit the changes
+    conn.commit()
