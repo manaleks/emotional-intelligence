@@ -1,96 +1,61 @@
 import psycopg2
 
-create_commands = (
-        """
-        CREATE TABLE vendors (
-            vendor_id SERIAL PRIMARY KEY,
-            vendor_name VARCHAR(255) NOT NULL
-        )
-        """,
-        """ CREATE TABLE parts (
-                part_id SERIAL PRIMARY KEY,
-                part_name VARCHAR(255) NOT NULL
-                )
-        """,
-        """
-        CREATE TABLE part_drawings (
-                part_id INTEGER PRIMARY KEY,
-                file_extension VARCHAR(5) NOT NULL,
-                drawing_data BYTEA NOT NULL,
-                FOREIGN KEY (part_id)
-                REFERENCES parts (part_id)
-                ON UPDATE CASCADE ON DELETE CASCADE
-        )
-        """,
-        """
-        CREATE TABLE vendor_parts (
-                vendor_id INTEGER NOT NULL,
-                part_id INTEGER NOT NULL,
-                PRIMARY KEY (vendor_id , part_id),
-                FOREIGN KEY (vendor_id)
-                    REFERENCES vendors (vendor_id)
-                    ON UPDATE CASCADE ON DELETE CASCADE,
-                FOREIGN KEY (part_id)
-                    REFERENCES parts (part_id)
-                    ON UPDATE CASCADE ON DELETE CASCADE
-        )
-        """)
-delete_tables = (
-        """
-        DROP TABLE vendor_parts
-        """,
-        """
-        DROP TABLE part_drawings
-        """,
-        """
-        DROP TABLE parts
-        """,
-        """
-        DROP TABLE vendors
-        """
-)
+class EmotionalDB(object):
+    """docstring"""
+    
+    def __init__(self, db_params, tables_delete_commands, tables_create_commands):
+        """Constructor"""
+        self.db_params = db_params
+        self.tables_delete_commands = tables_delete_commands
+        self.tables_create_commands = tables_create_commands
 
-def tables_work(db_params, commands):
-    """ create tables in the PostgreSQL database"""
-    conn = psycopg2.connect(host=db_params["DBHOST"],database=db_params["DBNAME"],
-                            user=db_params["DBUSER"], password=db_params["DBPASS"])
-    cur = conn.cursor()
+    def tables_work(self, commands):
+        """ create tables in the PostgreSQL database"""
+        conn = psycopg2.connect(host=self.db_params["DBHOST"],database=self.db_params["DBNAME"],
+                                user=self.db_params["DBUSER"], password=self.db_params["DBPASS"])
+        cur = conn.cursor()
 
-    try:
-        # create table one by one
-        for command in commands:
-            cur.execute(command)
+        try:
+            # create table one by one
+            for command in commands:
+                cur.execute(command)
+            # close communication with the PostgreSQL database server
+            cur.close()
+            # commit the changes
+            conn.commit()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if conn is not None:
+                conn.close()
+
+    def select(self, command):
+        conn = psycopg2.connect(host=self.db_params["DBHOST"],database=self.db_params["DBNAME"],
+                                user=self.db_params["DBUSER"], password=self.db_params["DBPASS"])
+        cur = conn.cursor()
+        cur.execute(command)
+        data = cur.fetchall()
+        #print(data)
+        #for row in data:
+        #    print(row)
         # close communication with the PostgreSQL database server
         cur.close()
         # commit the changes
         conn.commit()
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
-    finally:
-        if conn is not None:
-            conn.close()
+        return data
 
-def select(db_params, command):
-    conn = psycopg2.connect(host=db_params["DBHOST"],database=db_params["DBNAME"],
-                            user=db_params["DBUSER"], password=db_params["DBPASS"])
-    cur = conn.cursor()
-    cur.execute(command)
-    data = cur.fetchall()
-    #print(data)
-    #for row in data:
-    #    print(row)
-    # close communication with the PostgreSQL database server
-    cur.close()
-    # commit the changes
-    conn.commit()
-    return data
+    def insert(self, command):
+        conn = psycopg2.connect(host=self.db_params["DBHOST"],database=self.db_params["DBNAME"],
+                                user=self.db_params["DBUSER"], password=self.db_params["DBPASS"])
+        cur = conn.cursor()
+        cur.execute(command)
+        # close communication with the PostgreSQL database server
+        cur.close()
+        # commit the changes
+        conn.commit()
 
-def insert(db_params, command):
-    conn = psycopg2.connect(host=db_params["DBHOST"],database=db_params["DBNAME"],
-                            user=db_params["DBUSER"], password=db_params["DBPASS"])
-    cur = conn.cursor()
-    cur.execute(command)
-    # close communication with the PostgreSQL database server
-    cur.close()
-    # commit the changes
-    conn.commit()
+    def create_table(self):
+        self.tables_work(self.tables_delete_commands)
+        self.tables_work(self.tables_create_commands)
+        self.insert('''INSERT INTO Block (id, creditor, recipient, amount, hash) 
+                    VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');''')
