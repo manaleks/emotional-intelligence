@@ -76,7 +76,7 @@ def select(db_params, command):
     cur = conn.cursor()
     cur.execute(command)
     data = cur.fetchall()
-    print(data)
+    #print(data)
     #for row in data:
     #    print(row)
     # close communication with the PostgreSQL database server

@@ -3,7 +3,7 @@ import hashlib
 import db
 import db_config
 
-db_params = db_config.blockchain_db_config
+db_params = db_config.emotional_db_writer_config
 
 tables_create_commands = [
                         """
