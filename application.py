@@ -9,11 +9,6 @@ except:
 from blockchain import Blockchain
 from db import EmotionalDB
 
-os.environ['DBHOST'] = "emotionalpostgre.postgres.database.azure.com"
-os.environ['DBUSER'] = "emotionalwrirer@emotionalpostgre.postgres.database.azure.com"
-os.environ['DBNAME'] = "emotionaldb"
-os.environ['DBPASS'] = "emotional1337pass"
-
 emotional_db_writer_config = {
                             "DBHOST":os.environ['DBHOST'],
                             "DBUSER":os.environ['DBUSER'],
