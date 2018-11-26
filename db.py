@@ -57,5 +57,5 @@ class EmotionalDB(object):
     def create_table(self):
         self.tables_work(self.tables_delete_commands)
         self.tables_work(self.tables_create_commands)
-        self.insert('''INSERT INTO Block (id, creditor, recipient, amount, hash) 
+        self.insert('''INSERT INTO block (id, creditor, recipient, amount, hash) 
                     VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');''')

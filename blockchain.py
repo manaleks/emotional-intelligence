@@ -1,7 +1,5 @@
 import hashlib
 
-from db import EmotionalDB
-
 class Blockchain(object):
     """docstring"""
 
