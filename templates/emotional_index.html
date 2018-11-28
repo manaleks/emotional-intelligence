@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='UTF-8'>
+    <title>Emotional Intelligence</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">SS
+    <style>
+            html,
+            body,
+            h1,
+            h2,
+            h3,
+            h4,
+            h5 {
+                font-family: "Raleway", sans-serif
+            }
+
+        .button_RUN {
+            border: none;
+            color: white;
+            margin-top: 10px;
+            margin-left: 10px;
+            padding: 8px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: red;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="w3-light-grey">
+    <!-- Top container -->
+    <div class="w3-bar w3-top w3-black w3-large" style="z-index:4">
+        <a href="http://www.ksu.edu.ru/" class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey">
+            <b>
+                <i class="fa fa-bar-chart"></i> Kostroma analytics</b>
+        </a>
+    </div>
+
+     <!-- !PAGE CONTENT! -->
+     <div class="w3-main" style="margin-top:43px;">
+            <div class="w3-panel" style="padding-top:10px">
+                <div class="w3-row-padding">
+
+                <div class="w3-container w3-third">
+                    <form action="{{ url_for('emotional_index') }}" method="POST">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <input type="text" style='padding-left:5px' class="form-control" id="user_input" placeholder="user" name="user" value="{{request.form.get('user','')}}">
+
+                                <select name="feeling" class="selectpicker form-control">
+                                    {% for o in feelings %}
+                                    <option type="text" value="{{o}}"> {{o}} </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w3-black button_RUN">Submit</button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <div class="w3-container w3-twothird">
+                    {% for o in data %}
+                    <div type="text" value="{{o}}"> {{o}} </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+        <!-- Footer -->
+        <footer class="w3-container w3-padding-6 w3-dark-grey footer">
+            <h4>From KSU with love <3</h4>
+        </footer>
+        <!-- End page content -->
+    </div>
+</body>
+
+</html>
