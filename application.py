@@ -9,10 +9,10 @@ except:
 from blockchain import Blockchain
 from db import EmotionalDB
 
-#os.environ['DBHOST'] = "localhost"
-#os.environ['DBUSER'] = "bockchaincontroller"
-#os.environ['DBNAME'] = "bockchain"
-#os.environ['DBPASS'] = "supersecretpass"
+os.environ['DBHOST'] = "localhost"
+os.environ['DBUSER'] = "bockchaincontroller"
+os.environ['DBNAME'] = "bockchain"
+os.environ['DBPASS'] = "supersecretpass"
 
 emotional_db_writer_config = {
                             "DBHOST":os.environ['DBHOST'],
@@ -37,6 +37,8 @@ tables_create_commands = [
 
                         DROP TRIGGER IF EXISTS event_stamp_tr ON event;
                         DROP FUNCTION IF EXISTS event_stamp;
+
+                        DROP FUNCTION IF EXISTS get_report(user_name text) ;
                         """,
                         # Create tables
                         """
@@ -50,7 +52,12 @@ tables_create_commands = [
                             CONSTRAINT block_before_id_fkey FOREIGN KEY (before_id)
                                 REFERENCES block (id)
                         );
-                        CREATE TABLE group_emot(
+                         CREATE TABLE Color (
+                            id SERIAL PRIMARY KEY,
+                            name VARCHAR(20),
+                            code VARCHAR(10)
+                        );
+                        CREATE TABLE feeling (
                             id SERIAL PRIMARY KEY,
                             name VARCHAR(255)
                         );
@@ -62,10 +69,6 @@ tables_create_commands = [
                             group_id INTEGER,
                             CONSTRAINT user_group_id_fkey FOREIGN KEY (group_id)
                                 REFERENCES group_emot (id)
-                        );
-                        CREATE TABLE feeling (
-                            id SERIAL PRIMARY KEY,
-                            name VARCHAR(255)
                         );
                         CREATE TABLE emotion (
                             id SERIAL PRIMARY KEY,
@@ -146,6 +149,16 @@ tables_create_commands = [
 
                         CREATE TRIGGER event_stamp_tr BEFORE INSERT OR UPDATE ON event
                             FOR EACH ROW EXECUTE PROCEDURE event_stamp();
+                        """,
+                        # Create procedures
+                        """
+                        CREATE OR REPLACE FUNCTION get_report(user_name text)
+                        RETURNS TABLE (id INTEGER, user_id INTEGER, report_time timestamp) AS $$
+                            SELECT actual_feeling.id, user_id, time
+                            FROM actual_feeling 
+                            JOIN user_emot ON user_emot.id = actual_feeling.user_id
+                            WHERE user_emot.name = user_name;
+                        $$ LANGUAGE SQL;
                         """,
                         # Insert data
                         '''
