@@ -8,7 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">SS
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- версия для разработки, отображает полезные предупреждения в консоли -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
     <style>
             html,
             body,
@@ -74,6 +77,10 @@
                     </form>
                 </div>
 
+                <div id="app"> 
+                        [[ title ]]
+                </div>                
+               
 
                 <div class="w3-container w3-twothird">
                     {% for o in data %}
@@ -89,6 +96,20 @@
         </footer>
         <!-- End page content -->
     </div>
+    
+    <!-- <script type="text/javascript" src="{{ url_for('static', filename='message.js') }}"></script> -->
+    
+    <script type="text/javascript">
+            var app = new Vue({ 
+            el: '#app',
+            delimiters: ['[[', ']]'],
+            data: {
+                title: 'Hello Vue!'
+            }
+        });
+    </script>
+
+</script>      
 </body>
 
 </html>

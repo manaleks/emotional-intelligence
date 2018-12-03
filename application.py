@@ -9,6 +9,11 @@ except:
 from blockchain import Blockchain
 from db import EmotionalDB
 
+os.environ['DBHOST'] = "localhost"
+os.environ['DBUSER'] = "bockchaincontroller"
+os.environ['DBNAME'] = "bockchain"
+os.environ['DBPASS'] = "supersecretpass"
+
 emotional_db_writer_config = {
                             "DBHOST":os.environ['DBHOST'],
                             "DBUSER":os.environ['DBUSER'],
