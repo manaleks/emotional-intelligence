@@ -43,9 +43,9 @@ create_commands = [
                     # DROP tables, functions and triggers
                     """
                     DROP TRIGGER IF EXISTS event_stamp_tr ON event;
-                    DROP FUNCTION IF EXISTS event_stamp;
+                    DROP FUNCTION IF EXISTS event_stamp();
                     DROP FUNCTION IF EXISTS get_report(user_name text);
-                    
+
                     DROP TABLE IF EXISTS event_tag;
                     DROP TABLE IF EXISTS actual_feeling_tag;
                     DROP TABLE IF EXISTS feeling_object_tag;
