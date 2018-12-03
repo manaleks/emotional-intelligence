@@ -9,10 +9,12 @@ except:
 from blockchain import Blockchain
 from db import EmotionalDB
 
+"""
 os.environ['DBHOST'] = "localhost"
 os.environ['DBUSER'] = "bockchaincontroller"
 os.environ['DBNAME'] = "bockchain"
 os.environ['DBPASS'] = "supersecretpass"
+"""
 
 emotional_db_writer_config = {
                             "DBHOST":os.environ['DBHOST'],
@@ -20,22 +22,24 @@ emotional_db_writer_config = {
                             "DBNAME":os.environ['DBNAME'],
                             "DBPASS":os.environ['DBPASS']
                             }
-'''
-DROP TABLE block;
-CREATE TABLE block (
-    id SERIAL PRIMARY KEY,
-    creditor VARCHAR(255),
-    recipient VARCHAR(255),
-    amount VARCHAR(255),
-    hash VARCHAR(255),
-    before_id INTEGER,
-    CONSTRAINT block_before_id_fkey FOREIGN KEY (before_id)
-        REFERENCES block (id)
-);
-INSERT INTO block (id, creditor, recipient, amount, hash) 
-VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');
-'''
+
 tables_create_commands = [
+                        # Blockchain database work
+                        '''
+                        DROP TABLE IF EXISTS block;
+                        CREATE TABLE block (
+                            id SERIAL PRIMARY KEY,
+                            creditor VARCHAR(255),
+                            recipient VARCHAR(255),
+                            amount VARCHAR(255),
+                            hash VARCHAR(255),
+                            before_id INTEGER,
+                            CONSTRAINT block_before_id_fkey FOREIGN KEY (before_id)
+                                REFERENCES block (id)
+                        );
+                        INSERT INTO block (id, creditor, recipient, amount, hash) 
+                        VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');
+                        ''',
                         # DROP tables, functions and triggers
                         """
                         DROP TABLE IF EXISTS event_tag;
