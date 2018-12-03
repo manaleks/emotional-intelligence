@@ -60,7 +60,7 @@ tables_create_commands = [
                         """
                         # Create tables
                         """
-                         CREATE TABLE color (
+                        CREATE TABLE color (
                             id SERIAL PRIMARY KEY,
                             name VARCHAR(20),
                             code VARCHAR(10)
@@ -308,7 +308,7 @@ tables_create_commands = [
 tables_delete_commands = []
 
 emot_db = EmotionalDB(emotional_db_writer_config, tables_delete_commands, tables_create_commands)
-emot_db.create_table()
+#emot_db.create_table()
 
 B_chain = Blockchain(emot_db)
 
