@@ -15,6 +15,15 @@ class EmotionalDB(object):
                                 user=self.db_params["DBUSER"], password=self.db_params["DBPASS"])
         cur = conn.cursor()
 
+
+        # create table one by one
+        for command in commands:
+                cur.execute(command)
+        # close communication with the PostgreSQL database server
+        cur.close()
+        # commit the changes
+        conn.commit()
+        """
         try:
             # create table one by one
             for command in commands:
@@ -28,6 +37,7 @@ class EmotionalDB(object):
         finally:
             if conn is not None:
                 conn.close()
+        """
 
     def select(self, command):
         conn = psycopg2.connect(host=self.db_params["DBHOST"],database=self.db_params["DBNAME"],
