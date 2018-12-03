@@ -3,13 +3,12 @@ import psycopg2
 class EmotionalDB(object):
     """docstring"""
     
-    def __init__(self, db_params, tables_delete_commands, tables_create_commands):
+    def __init__(self, db_params, create_commands):
         """Constructor"""
         self.db_params = db_params
-        self.tables_delete_commands = tables_delete_commands
-        self.tables_create_commands = tables_create_commands
+        self.create_commands = create_commands
 
-    def tables_work(self, commands):
+    def tables_work(self):
         """ create tables in the PostgreSQL database"""
         conn = psycopg2.connect(host=self.db_params["DBHOST"],database=self.db_params["DBNAME"],
                                 user=self.db_params["DBUSER"], password=self.db_params["DBPASS"])
@@ -17,7 +16,7 @@ class EmotionalDB(object):
 
 
         # create table one by one
-        for command in commands:
+        for command in self.create_commands:
                 cur.execute(command)
         # close communication with the PostgreSQL database server
         cur.close()
@@ -63,6 +62,3 @@ class EmotionalDB(object):
         cur.close()
         # commit the changes
         conn.commit()
-
-    def create_table(self):
-        self.tables_work(self.tables_create_commands)

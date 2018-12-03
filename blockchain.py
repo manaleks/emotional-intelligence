@@ -15,15 +15,6 @@ class Blockchain(object):
         self.emot_db.insert('''INSERT INTO Block (id, creditor, recipient, amount, hash, before_id) 
                             VALUES ({}, '{}', '{}', '{}',
                             '{}', {});'''.format(before_id+1, name, amount, to_whom, hash, before_id))
-        """
-        self.emot_db.insert('''
-                            DROP TABLE IF EXISTS color;
-                            CREATE TABLE color (
-                            id SERIAL PRIMARY KEY,
-                            name VARCHAR(20),
-                            code VARCHAR(10)
-                            );''')
-        """
 
     def check_integrity(self):
         results = []
