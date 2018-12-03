@@ -20,112 +20,135 @@ emotional_db_writer_config = {
                             "DBNAME":os.environ['DBNAME'],
                             "DBPASS":os.environ['DBPASS']
                             }
-
+'''
+DROP TABLE block;
+CREATE TABLE block (
+    id SERIAL PRIMARY KEY,
+    creditor VARCHAR(255),
+    recipient VARCHAR(255),
+    amount VARCHAR(255),
+    hash VARCHAR(255),
+    before_id INTEGER,
+    CONSTRAINT block_before_id_fkey FOREIGN KEY (before_id)
+        REFERENCES block (id)
+);
+INSERT INTO block (id, creditor, recipient, amount, hash) 
+VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');
+'''
 tables_create_commands = [
                         # DROP tables, functions and triggers
                         """
-                        DROP TABLE actual_feeling;
-                        DROP TABLE actual_emotion;
-                        DROP TABLE block CASCADE;
-                        DROP TABLE feeling;
-                        DROP TABLE emotion;
-                        DROP TABLE tip;
+                        DROP TABLE event_tag;
+                        DROP TABLE actual_feeling_tag;
+                        DROP TABLE feeling_object_tag;
+                        DROP TABLE tag;
                         DROP TABLE event;
-                        DROP TABLE user_state CASCADE;
-                        DROP TABLE user_emot CASCADE;
-                        DROP TABLE group_emot;
+                        DROP TABLE actual_feeling;
+                        DROP TABLE feeling_object;
+                        DROP TABLE emotional_user;
+                        DROP TABLE feeling;
+                        DROP TABLE color;
 
                         DROP TRIGGER IF EXISTS event_stamp_tr ON event;
                         DROP FUNCTION IF EXISTS event_stamp;
 
-                        DROP FUNCTION IF EXISTS get_report(user_name text) ;
-                        """,
+                        DROP FUNCTION IF EXISTS get_report(user_name text);
+                        """
                         # Create tables
                         """
-                        CREATE TABLE block (
-                            id SERIAL PRIMARY KEY,
-                            creditor VARCHAR(255),
-                            recipient VARCHAR(255),
-                            amount VARCHAR(255),
-                            hash VARCHAR(255),
-                            before_id INTEGER,
-                            CONSTRAINT block_before_id_fkey FOREIGN KEY (before_id)
-                                REFERENCES block (id)
-                        );
-                         CREATE TABLE Color (
+                         CREATE TABLE color (
                             id SERIAL PRIMARY KEY,
                             name VARCHAR(20),
                             code VARCHAR(10)
                         );
                         CREATE TABLE feeling (
                             id SERIAL PRIMARY KEY,
-                            name VARCHAR(255)
+                            color_id SMALLINT,
+                            name VARCHAR(20),
+                            CONSTRAINT feeling_color_id_fkey FOREIGN KEY (color_id)
+                                REFERENCES color (id)
                         );
-                        CREATE TABLE user_emot (
+                        CREATE TABLE emotional_user (
                             id SERIAL PRIMARY KEY,
-                            name VARCHAR(255),
-                            passhash VARCHAR(255),
-                            registration_date VARCHAR(255),
-                            group_id INTEGER,
-                            CONSTRAINT user_group_id_fkey FOREIGN KEY (group_id)
-                                REFERENCES group_emot (id)
+                            name VARCHAR(100),
+                            pass_hash VARCHAR(100),
+                            email VARCHAR(100) UNIQUE,
+                            registration_date timestamp
                         );
-                        CREATE TABLE emotion (
+                        CREATE TABLE feeling_object (
                             id SERIAL PRIMARY KEY,
-                            name VARCHAR(255)
+                            user_id INTEGER,
+                            name VARCHAR(20),
+                            CONSTRAINT feeling_object_user_id_fkey FOREIGN KEY (user_id)
+                            REFERENCES emotional_user (id)
                         );
                         CREATE TABLE actual_feeling (
                             id SERIAL PRIMARY KEY,
                             user_id INTEGER,
-                            feeling_id INTEGER,
-                            feeling_object VARCHAR(255),
+                            feeling_id SMALLINT,
+                            feeling_object_id INTEGER,
                             intensity INTEGER CHECK (intensity > 0 and intensity <= 10),
                             time timestamp,
-                            CONSTRAINT actual_feeling_id_fkey FOREIGN KEY (feeling_id)
-                                REFERENCES feeling (id),
-                            CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
-                                REFERENCES user_emot (id)
-                        );
-                        CREATE TABLE actual_emotion (
-                            id SERIAL PRIMARY KEY,
-                            user_id INTEGER,
-                            emotion_id INTEGER,
-                            intensity INTEGER,
-                            time timestamp,
-                            CONSTRAINT Actual_emotion_id_fkey FOREIGN KEY (emotion_id)
-                                REFERENCES emotion (id),
-                            CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
-                                REFERENCES user_emot (id)
-                        );
-                        CREATE TABLE user_state (
-                            id SERIAL PRIMARY KEY,
-                            user_id INTEGER,
-                            time timestamp,
-                            CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
-                                REFERENCES user_emot (id)
+                            CONSTRAINT actual_feeling_user_id_fkey FOREIGN KEY (user_id)
+                            REFERENCES emotional_user (id),
+                            CONSTRAINT actual_feeling_feeling_id_fkey FOREIGN KEY (feeling_id)
+                            REFERENCES feeling (id),
+                            CONSTRAINT actual_feeling_feeling_object_id_fkey FOREIGN KEY (feeling_object_id)
+                            REFERENCES feeling_object (id)
                         );
                         CREATE TABLE event (
                             id SERIAL PRIMARY KEY,
                             user_id INTEGER,
+                            feeling_before_id INTEGER,
+                            feeling_after_id INTEGER,
+                            name VARCHAR(100),
                             time timestamp,
-                            place VARCHAR(255),
+                            place VARCHAR(100),
                             description VARCHAR(255),
-                            user_state_before_id INTEGER,
-                            user_state_after_id INTEGER,
-                            CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
-                                REFERENCES user_emot (id),
-                            CONSTRAINT user_state_before_id_fkey FOREIGN KEY (user_state_before_id)
-                                REFERENCES user_state (id),
-                            CONSTRAINT user_state_after_id_fkey FOREIGN KEY (user_state_after_id)
-                                REFERENCES user_state (id)
+                            CONSTRAINT event_user_id_fkey FOREIGN KEY (user_id)
+                            REFERENCES emotional_user (id),
+                            CONSTRAINT event_feeling_before_id_fkey FOREIGN KEY (feeling_before_id)
+                            REFERENCES actual_feeling (id),
+                            CONSTRAINT event_feeling_after_id_fkey FOREIGN KEY (feeling_after_id)
+                            REFERENCES actual_feeling (id)
                         );
-                        CREATE TABLE tip (
+                        CREATE TABLE tag (
                             id SERIAL PRIMARY KEY,
-                            user_state_id INTEGER,
-                            name VARCHAR(255),
-                            description VARCHAR(255),
-                            CONSTRAINT user_state_id_fkey FOREIGN KEY (user_state_id)
-                                REFERENCES user_state (id)
+                            user_id INTEGER,
+                            color_id SMALLINT,
+                            name VARCHAR(20),
+                            CONSTRAINT tag_user_id_fkey FOREIGN KEY (user_id)
+                            REFERENCES emotional_user (id),
+                            CONSTRAINT tag_color_id_fkey FOREIGN KEY (color_id)
+                            REFERENCES color (id)
+                        );
+
+                        CREATE TABLE feeling_object_tag (
+                            feeling_object_id INTEGER,
+                            tag_id INTEGER,
+                            CONSTRAINT tag_feeling_object_id_fkey FOREIGN KEY (feeling_object_id)
+                            REFERENCES feeling_object (id),
+                            CONSTRAINT feeling_object_tag_id_fkey FOREIGN KEY (tag_id)
+                            REFERENCES tag (id),
+                            PRIMARY KEY(feeling_object_id, tag_id)
+                        );
+                        CREATE TABLE actual_feeling_tag (
+                            actual_feeling_id INTEGER,
+                            tag_id INTEGER,
+                            CONSTRAINT tag_actual_feelingt_id_fkey FOREIGN KEY (actual_feeling_id)
+                            REFERENCES actual_feeling (id),
+                            CONSTRAINT actual_feeling_tag_id_fkey FOREIGN KEY (tag_id)
+                            REFERENCES tag (id),
+                            PRIMARY KEY(actual_feeling_id, tag_id)
+                        );
+                        CREATE TABLE event_tag (
+                            event_id INTEGER,
+                            tag_id INTEGER,
+                            CONSTRAINT tag_event_id_fkey FOREIGN KEY (event_id)
+                            REFERENCES event (id),
+                            CONSTRAINT event_tag_id_fkey FOREIGN KEY (tag_id)
+                            REFERENCES tag (id),
+                            PRIMARY KEY(event_id, tag_id)
                         );
                         """,
                         # Create triggers
@@ -133,88 +156,148 @@ tables_create_commands = [
                         CREATE OR REPLACE FUNCTION event_stamp() 
                             RETURNS trigger AS $event_stamp$
                                 BEGIN
-                                    -- Проверка, что указан пользователь и описание события
-                                    IF NEW.user_id IS NULL THEN
-                                        RAISE EXCEPTION 'user_id cannot be null';
-                                    END IF;
-                                    IF NEW.description IS NULL THEN
-                                        RAISE EXCEPTION 'description cannot be null';
+                                    -- true ids
+                                    IF NEW.feeling_before_id = NEW.feeling_after_id THEN
+                                        RAISE EXCEPTION 'before feeling can not be after feeling';
                                     END IF;
 
-                                    -- Установка даты записи
-                                    NEW.time := current_timestamp;
+                                    IF NEW.user_id != (SELECT a.user_id FROM actual_feeling a WHERE a.id = NEW.feeling_before_id) THEN
+                                        RAISE EXCEPTION 'user not equal feeling_before user';
+                                    END IF;
+
+                                    IF NEW.user_id != (SELECT a.user_id FROM actual_feeling a WHERE a.id = NEW.feeling_before_id) THEN
+                                        RAISE EXCEPTION 'user not equal feeling_before user';
+                                    END IF;
+
+                                    IF NEW.user_id != (SELECT a.user_id FROM actual_feeling a WHERE a.id = NEW.feeling_after_id) THEN
+                                        RAISE EXCEPTION 'user not equal feeling_after user';
+                                    END IF;
+
+                                    IF NEW.feeling_before_id IS NOT NULL AND NEW.feeling_after_id IS NOT NULL AND
+                                        (SELECT a.user_id 
+                                        FROM actual_feeling a 
+                                        JOIN actual_feeling b 
+                                        ON a.id = NEW.feeling_before_id 
+                                        AND b.id = NEW.feeling_after_id
+                                        AND a.user_id = b.user_id) IS NULL THEN
+                                        RAISE EXCEPTION 'feeling_before user not equal feeling_after user';
+                                    END IF;
+
+                                    -- time before < time after
+                                    IF NEW.feeling_before_id IS NOT NULL AND NEW.feeling_after_id IS NOT NULL AND
+                                        (SELECT time FROM actual_feeling WHERE actual_feeling.id = NEW.feeling_before_id) >
+                                        (SELECT time FROM actual_feeling WHERE actual_feeling.id = NEW.feeling_after_id) THEN
+                                        RAISE EXCEPTION 'feeling_before can not be after the feeling_after';
+                                    END IF;
+
                                     RETURN NEW;
                                 END;
                             $event_stamp$ LANGUAGE plpgsql;
 
                         CREATE TRIGGER event_stamp_tr BEFORE INSERT OR UPDATE ON event
                             FOR EACH ROW EXECUTE PROCEDURE event_stamp();
+
+
+                        CREATE OR REPLACE FUNCTION actual_feeling_stamp() 
+                            RETURNS trigger AS $actual_feeling_stamp$
+                                BEGIN
+                                    -- true ids
+                                    IF NEW.user_id != (SELECT a.user_id FROM feeling_object a WHERE a.id = NEW.feeling_object_id) THEN
+                                        RAISE EXCEPTION 'user not equal feeling_object user';
+                                    END IF;
+
+                                    -- set time
+                                    IF NEW.time IS NULL THEN
+                                        NEW.time = current_timestamp;
+                                    END IF;
+
+                                    RETURN NEW;
+                                END;
+                            $actual_feeling_stamp$ LANGUAGE plpgsql;
+
+                        CREATE TRIGGER actual_feeling_stamp_tr BEFORE INSERT OR UPDATE ON actual_feeling
+                            FOR EACH ROW EXECUTE PROCEDURE actual_feeling_stamp();
                         """,
                         # Create procedures
                         """
                         CREATE OR REPLACE FUNCTION get_report(user_name text)
                         RETURNS TABLE (id INTEGER, user_id INTEGER, report_time timestamp) AS $$
-                            SELECT actual_feeling.id, user_id, time
-                            FROM actual_feeling 
-                            JOIN user_emot ON user_emot.id = actual_feeling.user_id
-                            WHERE user_emot.name = user_name;
+                            SELECT a.id, a.user_id, a.time
+                            FROM actual_feeling a
+                            JOIN emotional_user ON emotional_user.id = a.user_id
+                            WHERE emotional_user.name = user_name;
                         $$ LANGUAGE SQL;
                         """,
                         # Insert data
                         '''
-                        INSERT INTO block (id, creditor, recipient, amount, hash) 
-                            VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');
-
-                        INSERT INTO user_emot (id, name, registration_date) 
-                            VALUES  
-                                (1, 'Aleks', current_timestamp),
-                                (2, 'Natasha', current_timestamp);
+                        INSERT INTO color (id, name) 
+                        VALUES 	
+                            (1, 'red'),
+                            (2, 'green'),
+                            (3, 'blue'),
+                            (4, 'white'),
+                            (5, 'black'),
+                            (6, 'yellow'),
+                            (7, 'orange'),
+                            (8, 'purpure');
 
                         INSERT INTO feeling (id, name) 
-                            VALUES 	
-                                (1, 'joy'),
-                                (2, 'trust'),
-                                (3, 'anger'),
-                                (4, 'anticipation'),
-                                (5, 'disgust'),
-                                (6, 'sadness'),
-                                (7, 'surprise'),
-                                (8, 'fear');
+                        VALUES 	
+                            (1, 'joy'),
+                            (2, 'trust'),
+                            (3, 'anger'),
+                            (4, 'anticipation'),
+                            (5, 'disgust'),
+                            (6, 'sadness'),
+                            (7, 'surprise'),
+                            (8, 'fear');
 
-                        INSERT INTO emotion (id, name) 
-                            VALUES 	
-                                (1, 'extasy'),
-                                (2, 'vigilance'),
-                                (3, 'rage'),
-                                (4, 'loathing'),
-                                (5, 'grief'),
-                                (6, 'amazement'),
-                                (7, 'terror'),
-                                (8, 'admiration');
+                        INSERT INTO emotional_user (id, name, pass_hash, email, registration_date) 
+                        VALUES  
+                            (1, 'Aleks', md5('helloworld'), 'manaleksdev@gmail.com', current_timestamp),
+                            (2, 'Natasha', md5('helloworld'), '',current_timestamp);
 
-                        INSERT INTO actual_feeling (user_id, feeling_id, feeling_object, intensity, time)
-	                        VALUES 
-                                (1, 1, 'Work', 10, current_timestamp),
-                                (2, 1, 'Work', 10, current_timestamp),
-                                (1, 3, 'Eat', 10, current_timestamp),
-                                (1, 2, 'Wearpon', 1, current_timestamp),
-                                (1, 1, 'Work', 10, current_timestamp),
-                                (2, 1, 'Work', 10, current_timestamp),
-                                (1, 3, 'Eat', 10, current_timestamp),
-                                (1, 2, 'Wearpon', 1, current_timestamp),
-                                (1, 1, 'Work', 10, current_timestamp),
-                                (2, 1, 'Work', 10, current_timestamp),
-                                (1, 3, 'Eat', 10, current_timestamp),
-                                (1, 2, 'Wearpon', 1, current_timestamp),
-                                (1, 1, 'Work', 10, current_timestamp),
-                                (2, 1, 'Work', 10, current_timestamp),
-                                (1, 3, 'Eat', 10, current_timestamp),
-                                (1, 2, 'Wearpon', 1, current_timestamp),
-                                (1, 1, 'DB', 10, current_timestamp);
+                        INSERT INTO feeling_object (id, user_id, name) 
+                        VALUES  
+                            (1, 1, 'Work'),
+                            (2, 1, 'KSU'),
+                            (3, 2, 'Eat'),
+                            (4, 2, 'Sport');
+
+                        INSERT INTO actual_feeling (user_id, feeling_id, feeling_object_id, intensity, time)
+                        VALUES 
+                            (1, 1, 1, 10, current_timestamp),
+                            (2, 1, 3, 10, current_timestamp),
+                            (1, 3, 2, 10, current_timestamp),
+                            (1, 2, 2, 1, current_timestamp);
                                 
+                        INSERT INTO event (user_id, feeling_before_id, feeling_after_id, name) 
+                        VALUES 
+                            (1, 1, 4, 'hello'),
+                            (1, 1, 3, 'hello'),
+                            (1, 1, Null, 'hello'),
+                            (1, Null, Null, 'hello');
 
-                        INSERT INTO event (id, user_id, description) 
-                            VALUES (2, 1, 'hello');
+                        INSERT INTO tag (id, user_id, color_id, name) 
+                        VALUES 
+                            (1, 1, 1, 'I do now like it'),
+                            (2, 2, 4, 'My best day'),
+                            (3, 2, 5, 'University'),
+                            (4, 1, 2, 'travel');
+
+                        INSERT INTO feeling_object_tag (feeling_object_id, tag_id) 
+                        VALUES 
+                            (1, 1),
+                            (2, 2),
+                            (3, 2),
+                            (4, 1);
+
+                        INSERT INTO event_tag (event_id, tag_id) 
+                        VALUES 
+                            (1, 1),
+                            (1, 2),
+                            (1, 4),
+                            (1, 3);
                         '''
                         ]
 
@@ -270,9 +353,7 @@ def emotional_index():
         if user == 'Aleks' or user == 'Natasha':
             querry =    '''
                             SELECT * 
-                            FROM actual_feeling 
-                            JOIN user_emot ON user_emot.id = actual_feeling.user_id
-                            WHERE user_emot.name = '{}'
+                            FROM get_report('{}') 
                         '''.format(user)
             result = emot_db.select(command=querry)
         else: 
