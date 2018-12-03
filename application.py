@@ -9,11 +9,6 @@ except:
 from blockchain import Blockchain
 from db import EmotionalDB
 
-os.environ['DBHOST'] = "localhost"
-os.environ['DBUSER'] = "bockchaincontroller"
-os.environ['DBNAME'] = "bockchain"
-os.environ['DBPASS'] = "supersecretpass"
-
 emotional_db_writer_config = {
                             "DBHOST":os.environ['DBHOST'],
                             "DBUSER":os.environ['DBUSER'],
@@ -38,16 +33,16 @@ VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLO
 tables_create_commands = [
                         # DROP tables, functions and triggers
                         """
-                        DROP TABLE event_tag;
-                        DROP TABLE actual_feeling_tag;
-                        DROP TABLE feeling_object_tag;
-                        DROP TABLE tag;
-                        DROP TABLE event;
-                        DROP TABLE actual_feeling;
-                        DROP TABLE feeling_object;
-                        DROP TABLE emotional_user;
-                        DROP TABLE feeling;
-                        DROP TABLE color;
+                        DROP TABLE IF EXISTS event_tag;
+                        DROP TABLE IF EXISTS actual_feeling_tag;
+                        DROP TABLE IF EXISTS feeling_object_tag;
+                        DROP TABLE IF EXISTS tag;
+                        DROP TABLE IF EXISTS event;
+                        DROP TABLE IF EXISTS actual_feeling;
+                        DROP TABLE IF EXISTS feeling_object;
+                        DROP TABLE IF EXISTS emotional_user;
+                        DROP TABLE IF EXISTS feeling;
+                        DROP TABLE IF EXISTS color;
 
                         DROP TRIGGER IF EXISTS event_stamp_tr ON event;
                         DROP FUNCTION IF EXISTS event_stamp;
