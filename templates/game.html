@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='UTF-8'>
+    <title>Space invaders</title>
+    <meta charset="UTF-8">
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            background-color: black;
+            overflow: hidden;
+        }
+
+        .space-container {
+            background-color: black;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: nowrap;
+        }
+
+        .cell {
+            width: 15px;
+            height: 15px;
+            /* border: rebeccapurple solid 1px;*/
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div id="space" class="space-container">
+    </div>
+
+
+
+    <script>
+        // Create space
+        var space = document.getElementById("space");
+        var row_len = 102//Math.round(screen.width / 15);
+        var column_len = 50//Math.round(screen.height / 15);
+
+        // Game global vars
+        var def_column = Math.round(column_len / 2);
+        var def_row = Math.round(row_len / 2);
+        var def_size = 4;
+        var def_color = 'white';
+
+        for (var i = 0; i < column_len; i++) {
+            var row = document.createElement("div");
+            row.setAttribute('class', 'row')
+            row.setAttribute("y", i);
+            row.setAttribute("id", i);
+
+            for (var j = 0; j < row_len; j++) {
+                var cell = document.createElement("div");
+                cell.setAttribute('class', 'cell')
+                cell.setAttribute("y", i);
+                cell.setAttribute("x", j);
+                row.appendChild(cell);
+            }
+            space.appendChild(row);
+        }
+
+        // this fucntion set defender
+
+        function set_defender(y, x, set_def_size, set_def_color) {
+            // if in space
+            if (y >= Math.round(column_len / 2) && y < column_len && x >= 0 && x < row_len) {
+                
+                // clear space
+                var enter_row = document.getElementById(def_column);
+                var cells = enter_row.childNodes;
+                for (var k = 0; k < cells.length; k++) {
+                    if (k >= def_row - def_size && k <= def_row + def_size) {
+                        cells[k].style = 'background-color: ' + 'black';
+                    }
+                }
+                
+                // set defender
+                var enter_row = document.getElementById(y);
+                var cells = enter_row.childNodes;
+                for (var k = 0; k < cells.length; k++) {
+                    if (k >= x - set_def_size && k <= x + set_def_size) {
+                        cells[k].style = 'background-color: ' + set_def_color;
+                    }
+                }
+                // save new defender place
+                def_column = y;
+                def_row = x;
+                def_size = set_def_size;
+            }
+        }
+
+        document.body.onkeydown = keyboard_controler;
+        function keyboard_controler(event) {
+            if (event.type = 'keydown') {
+                if (event.key == ' ') {
+                }
+                if (event.key == 'w' || event.key == 'ArrowUp') {
+                    set_defender(def_column - 1, def_row, def_size, def_color)
+                }
+                if (event.key == 'd' || event.key == 'ArrowRight') {
+                    set_defender(def_column, def_row + 1, def_size, def_color)
+                }
+                if (event.key == 's' || event.key == 'ArrowDown') {
+                    set_defender(def_column + 1, def_row, def_size, def_color)
+                }
+                if (event.key == 'a' || event.key == 'ArrowLeft') {
+                    set_defender(def_column, def_row - 1, def_size, def_color)
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
