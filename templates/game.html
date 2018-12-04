@@ -47,10 +47,21 @@
         var column_len = 50//Math.round(screen.height / 15);
 
         // Game global vars
+
+        // Defender vars
         var def_column = Math.round(column_len / 2);
         var def_row = Math.round(row_len / 2);
         var def_size = 4;
         var def_color = 'white';
+        var def_dir = '';
+        var def_inertia_power = 50;
+        var RightInertiaInterval;
+        var LeftInertiaInterval;
+        var UpInertiaInterval;
+        var DownInertiaInterval;
+
+        // Piu vars
+        
 
         for (var i = 0; i < column_len; i++) {
             var row = document.createElement("div");
@@ -73,7 +84,7 @@
         function set_defender(y, x, set_def_size, set_def_color) {
             // if in space
             if (y >= Math.round(column_len / 2) && y < column_len && x >= 0 && x < row_len) {
-                
+
                 // clear space
                 var enter_row = document.getElementById(def_column);
                 var cells = enter_row.childNodes;
@@ -82,7 +93,7 @@
                         cells[k].style = 'background-color: ' + 'black';
                     }
                 }
-                
+
                 // set defender
                 var enter_row = document.getElementById(y);
                 var cells = enter_row.childNodes;
@@ -104,16 +115,24 @@
                 if (event.key == ' ') {
                 }
                 if (event.key == 'w' || event.key == 'ArrowUp') {
-                    set_defender(def_column - 1, def_row, def_size, def_color)
+                    set_defender(def_column - 1, def_row, def_size, def_color);
+                    clearInterval(UpInertiaInterval);
+                    UpInertiaInterval = setInterval(function () { set_defender(def_column - 1, def_row, def_size, def_color); }, def_inertia_power);
                 }
                 if (event.key == 'd' || event.key == 'ArrowRight') {
-                    set_defender(def_column, def_row + 1, def_size, def_color)
+                    set_defender(def_column, def_row + 1, def_size, def_color);
+                    clearInterval(LeftInertiaInterval);
+                    LeftInertiaInterval = setInterval(function () { set_defender(def_column, def_row + 1, def_size, def_color); }, def_inertia_power);
                 }
                 if (event.key == 's' || event.key == 'ArrowDown') {
-                    set_defender(def_column + 1, def_row, def_size, def_color)
+                    set_defender(def_column + 1, def_row, def_size, def_color);
+                    clearInterval(UpInertiaInterval);
+                    UpInertiaInterval = setInterval(function () { set_defender(def_column + 1, def_row, def_size, def_color); }, def_inertia_power);
                 }
                 if (event.key == 'a' || event.key == 'ArrowLeft') {
-                    set_defender(def_column, def_row - 1, def_size, def_color)
+                    set_defender(def_column, def_row - 1, def_size, def_color);
+                    clearInterval(LeftInertiaInterval);
+                    LeftInertiaInterval = setInterval(function () { set_defender(def_column, def_row - 1, def_size, def_color); }, def_inertia_power);
                 }
             }
         }
