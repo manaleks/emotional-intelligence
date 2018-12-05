@@ -27,7 +27,7 @@
         .cell {
             width: 10px;
             height: 10px;
-            
+           /* border:darkslateblue solid 1px; */
         }
     </style>
 </head>
@@ -43,8 +43,21 @@
     <script>
         // Create space
         var space = document.getElementById("space");
-        var row_len = Math.round(screen.width / 10);
-        var column_len = Math.round(screen.height / 10);
+        var row_len = Math.round(window.innerWidth / 10);
+        var column_len = Math.round(window.innerHeight / 10);
+
+        for (var i = 0; i < column_len; i++) {
+            var row = document.createElement("div");
+            row.setAttribute('class', 'row')
+            row.setAttribute("id", i);
+
+            for (var j = 0; j < row_len; j++) {
+                var cell = document.createElement("div");
+                cell.setAttribute('class', 'cell')
+                row.appendChild(cell);
+            }
+            space.appendChild(row);
+        }
 
         // Game global vars
 
@@ -71,7 +84,7 @@
         // gun vars
         var gun_sound_numder_all = 0;
         var gun_sound_numder = gun_sound_numder_all;
-        var gun_shots_all = 20;
+        var gun_shots_all = 40;
         var gun_shots = gun_shots_all;
         for (var sound_num = gun_sound_numder_all; sound_num < gun_shots_all; sound_num++) {
             var gun_sound = document.createElement("audio");
@@ -82,28 +95,10 @@
             gun_sound.appendChild(gun_sound_src);
             gun_sound.setAttribute("preload","auto");
             space.appendChild(gun_sound);
-            //gun_sound.load()
+            gun_sound.load()
         }
 
-
-        for (var i = 0; i < column_len; i++) {
-            var row = document.createElement("div");
-            row.setAttribute('class', 'row')
-            row.setAttribute("y", i);
-            row.setAttribute("id", i);
-
-            for (var j = 0; j < row_len; j++) {
-                var cell = document.createElement("div");
-                cell.setAttribute('class', 'cell')
-                cell.setAttribute("y", i);
-                cell.setAttribute("x", j);
-                row.appendChild(cell);
-            }
-            space.appendChild(row);
-        }
-
-        // this fucntion set defender
-
+        // this fucntion set defender in space
         function set_defender(y, x, set_def_size, set_def_color) {
             // if in space
             if (y >= start_y && y < column_len && x >= 0+set_def_size && x < row_len-set_def_size) {
