@@ -57,8 +57,8 @@
         var up_last_dir = '';
         var left_last_dir = '';
         var def_inertia_power_max = 1/1000;
-        var up_def_inertia_power = 50;
-        var left_def_inertia_power = 50;
+        var up_def_inertia_power = 30;
+        var left_def_inertia_power = 30;
         var RightInertiaInterval;
         var LeftInertiaInterval;
         var UpInertiaInterval;
@@ -126,7 +126,7 @@
                         up_def_inertia_power = up_def_inertia_power + 1;
                     }
                     else {
-                        up_def_inertia_power = 50;
+                        //up_def_inertia_power = 50;
                     }
                     UpInertiaInterval = setInterval(function () { set_defender(def_column - 1, def_row, def_size, def_color); }, up_def_inertia_power);
                     up_last_dir = 'w';
@@ -138,7 +138,7 @@
                         left_def_inertia_power = left_def_inertia_power + 1;
                     }
                     else {
-                        left_def_inertia_power = 50;
+                        //left_def_inertia_power = 50;
                     }
                     LeftInertiaInterval = setInterval(function () { set_defender(def_column, def_row + 1, def_size, def_color); }, left_def_inertia_power);
                     left_last_dir = 'a';
@@ -150,7 +150,7 @@
                         up_def_inertia_power = up_def_inertia_power + 1;
                     }
                     else {
-                        up_def_inertia_power = 50;
+                        //up_def_inertia_power = 50;
                     }
                     UpInertiaInterval = setInterval(function () { set_defender(def_column + 1, def_row, def_size, def_color); }, up_def_inertia_power);
                     up_last_dir = 's';
@@ -162,7 +162,7 @@
                         left_def_inertia_power = left_def_inertia_power + 1;
                     }
                     else {
-                        left_def_inertia_power = 50;
+                        //left_def_inertia_power = 50;
                     }
                     LeftInertiaInterval = setInterval(function () { set_defender(def_column, def_row - 1, def_size, def_color); }, left_def_inertia_power);
                     left_last_dir = 'a';
