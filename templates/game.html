@@ -33,12 +33,12 @@
 </head>
 
 <body>
-
-
     <div id="space" class="space-container">
     </div>
 
-
+    <audio id='background_music' class='audio' style='visibility:hidden;' controls>
+            <source src="{{ url_for('static', filename='invaders_must_die.mp3') }}" type="audio/mpeg">
+    </audio>
 
     <script>
         // Create space
@@ -56,7 +56,7 @@
         // defender inertia
         var up_last_dir = '';
         var left_last_dir = '';
-        var def_inertia_power_max = 1/1000;
+        var def_inertia_power_max = 1 / 1000;
         var up_def_inertia_power = 30;
         var left_def_inertia_power = 30;
         var RightInertiaInterval;
@@ -64,7 +64,20 @@
         var UpInertiaInterval;
         var DownInertiaInterval;
 
-        // Piu vars
+        // gun vars
+        var gun_sound_numder_all = 0;
+        var gun_sound_numder = gun_sound_numder_all;
+        var gun_shots_all = 20;
+        var gun_shots = gun_shots_all;
+        for (var sound_num = gun_sound_numder_all; sound_num < gun_shots_all; sound_num++) {
+            var gun_sound = document.createElement("audio");
+            gun_sound.setAttribute("id", "gun_attack" + sound_num);
+            var gun_sound_src = document.createElement("source");
+            gun_sound_src.setAttribute("src", "{{ url_for('static', filename='gun_attack.wav') }}");
+            gun_sound_src.setAttribute("type", "audio/wav")
+            gun_sound.appendChild(gun_sound_src);
+            space.appendChild(gun_sound);
+        }
 
 
         for (var i = 0; i < column_len; i++) {
@@ -88,7 +101,7 @@
         function set_defender(y, x, set_def_size, set_def_color) {
             // if in space
             if (y >= Math.round(column_len / 2) && y < column_len && x >= 0 && x < row_len) {
-                
+
                 // clear space
                 var enter_row = document.getElementById(def_column);
                 var cells = enter_row.childNodes;
@@ -113,11 +126,60 @@
             }
         }
 
+        function draw_cell(y, x, color) {
+            var draw_row = document.getElementById(y);
+            var draw_cells = draw_row.childNodes;
+            draw_cells[x].style = "background-color: " + color + ';';
+        }
+
+        function gun_cooldown() {
+            gun_shots++;
+        }
+
+        function piu(y, x) {
+            if (y >= 0) {
+                draw_cell(y, x, 'black');
+                draw_cell(y-1, x, 'red');
+                setTimeout(function () { piu(y - 1, x); }, 10);
+            }
+        }
+
+        // keyboard control
         document.body.onkeydown = keyboard_controler;
         function keyboard_controler(event) {
             if (event.type = 'keydown') {
+                // gun attack
                 if (event.key == ' ') {
+                    if (gun_shots > 0) {
+                        // play sound
+                        if (gun_sound_numder == gun_shots_all) {
+                            gun_sound_numder = gun_sound_numder_all;
+                        }
+                        var gun_sound = document.getElementById("gun_attack" + gun_sound_numder);
+                        gun_sound.play();
+
+                        // make visualisation
+                        piu(def_column-1, def_row);
+
+                       // gun_pius = setInterval(function () { piu(def_column, def_row); }, 30);
+
+                        // count shots
+                        gun_shots--;
+                        setTimeout(gun_cooldown, 3000);
+                        gun_sound_numder++;
+                    }
                 }
+                // play music
+                if (event.key == 'q') {
+                    var music = document.getElementById('background_music');
+                    music.play();
+                }
+                // end || stop music
+                if (event.key == 'Escape') {
+                    var music = document.getElementById('background_music');
+                    music.pause();
+                }
+
                 if (event.key == 'w' || event.key == 'ArrowUp') {
                     set_defender(def_column - 1, def_row, def_size, def_color);
                     clearInterval(UpInertiaInterval);
