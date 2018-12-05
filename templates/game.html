@@ -25,9 +25,9 @@
         }
 
         .cell {
-            width: 10px;
-            height: 10px;
-           /* border:darkslateblue solid 1px; */
+            width: 8px;
+            height: 8px;
+            /* border:darkslateblue solid 1px; */
         }
     </style>
 </head>
@@ -37,14 +37,21 @@
     </div>
 
     <audio id='background_music' class='audio' style='visibility:hidden;' controls>
-            <source src="{{ url_for('static', filename='invaders_must_die.mp3') }}" type="audio/mpeg">
+        <source src="{{ url_for('static', filename='invaders_must_die.mp3') }}" type="audio/mpeg">
     </audio>
 
     <script>
         // Create space
         var space = document.getElementById("space");
-        var row_len = Math.round(window.innerWidth / 10);
-        var column_len = Math.round(window.innerHeight / 10);
+        var row_len = Math.round(window.innerWidth / 8);
+        var column_len = Math.round(window.innerHeight / 8);
+
+        // just put color in cell
+        function draw_cell(y, x, color) {
+            var draw_row = document.getElementById(y);
+            var draw_cells = draw_row.childNodes;
+            draw_cells[x].style = "background-color: " + color + ';';
+        }
 
         for (var i = 0; i < column_len; i++) {
             var row = document.createElement("div");
@@ -79,7 +86,7 @@
         var LeftInertiaInterval;
         var UpInertiaInterval;
         var DownInertiaInterval;
-        
+
 
         // gun vars
         var gun_sound_numder_all = 0;
@@ -93,15 +100,62 @@
             gun_sound_src.setAttribute("src", "{{ url_for('static', filename='gun_attack.wav') }}");
             gun_sound_src.setAttribute("type", "audio/wav")
             gun_sound.appendChild(gun_sound_src);
-            gun_sound.setAttribute("preload","auto");
+            gun_sound.setAttribute("preload", "auto");
             space.appendChild(gun_sound);
             gun_sound.load()
         }
 
+        // invaders
+        var invader1 = [
+            [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+            [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1],
+            [1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1]
+        ]
+        var black_space = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+
+
+        function set_invader(y, x, color, invader_conf) {
+            for (var i = 0; i < invader_conf.length; i++) {
+                for (var j = 0; j < invader_conf[0].length; j++) {
+                    if (invader_conf[i][j] == 1) {
+                        draw_cell(y + i, x + j, color);
+                    }
+                }
+            }
+        }
+
+        function move_invader(y, x, color, invader_conf, cells_count) {
+            if (y < cells_count) {
+                set_invader(y, x, 'black', invader_conf);
+                set_invader(y + 1, x, color, invader_conf);
+                setTimeout(function () { move_invader(y + 1, x, color, invader_conf, cells_count); }, 40);
+            }
+            else {
+                set_invader(y, x, 'black', invader_conf);
+            }
+
+        }
+
+        move_invader(20, 50, 'blue', invader1, column_len - invader1.length);
+
         // this fucntion set defender in space
         function set_defender(y, x, set_def_size, set_def_color) {
             // if in space
-            if (y >= start_y && y < column_len && x >= 0+set_def_size && x < row_len-set_def_size) {
+            if (y >= start_y && y < column_len && x >= 0 + set_def_size && x < row_len - set_def_size) {
 
                 // clear space
                 var enter_row = document.getElementById(def_column);
@@ -128,21 +182,18 @@
         }
         set_defender(def_column, def_row, def_size, def_color);
 
-        function draw_cell(y, x, color) {
-            var draw_row = document.getElementById(y);
-            var draw_cells = draw_row.childNodes;
-            draw_cells[x].style = "background-color: " + color + ';';
-        }
-
         function gun_cooldown() {
             gun_shots++;
         }
 
         function piu(y, x) {
-            if (y >= 0) {
+            if (y > 0) {
                 draw_cell(y, x, 'black');
-                draw_cell(y-1, x, 'red');
+                draw_cell(y - 1, x, 'red');
                 setTimeout(function () { piu(y - 1, x); }, 10);
+            }
+            else {
+                draw_cell(y, x, 'black');
             }
         }
 
@@ -161,7 +212,7 @@
                         gun_sound.play();
 
                         // make visualisation
-                        piu(def_column-1, def_row);
+                        piu(def_column - 1, def_row);
 
                         // count shots
                         gun_shots--;
