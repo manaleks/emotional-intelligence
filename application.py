@@ -331,6 +331,10 @@ for rule in rules:
 def game():
     return render_template('game.html')
 
+@app.route('/gameover', methods=['GET', 'POST'])
+def gameover():
+    return render_template('gameover.html')
+
 
 # BLOCKCHAIN
 @app.route('/blockchain', methods=['GET', 'POST'])

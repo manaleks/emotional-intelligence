@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='UTF-8'>
+    <title>Gameover</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- версия для разработки, отображает полезные предупреждения в консоли -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <style>
+        html,
+        body,
+        div,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-family: "Raleway", sans-serif
+        }
+
+        .button_RUN {
+            border: none;
+            color: white;
+            margin-top: 10px;
+            margin-left: 10px;
+            padding: 8px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: red;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="w3-light-grey">
+    <!-- Top container -->
+    <div class="w3-bar w3-top w3-black w3-large" style="z-index:4">
+        <a href="http://www.ksu.edu.ru/" class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey">
+            <b>
+                <i class="fa fa-bar-chart"></i> Kostroma gamedev</b>
+        </a>
+    </div>
+
+    <!-- !PAGE CONTENT! -->
+    <div class="w3-main" style="margin-top:43px;">
+        <div class="w3-panel" style="padding-top:10px">
+            <div class="w3-row-padding">
+                <a href="http://127.0.0.1:5000/game" class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey">
+                    <button type="submit" class="btn btn-primary w3-black button_RUN">Go back</button>
+                </a>
+            </div>
+        </div>
+
+        <div style="padding-left:20px">
+            Вы проиграли. Но ничего страшного.
+            <br>Ведь велик не тот, кто никогда не проигрывает, а тот, каждый раз встаёт после поражения!
+            <br> Вы можете попробовать ещё раз, нажав кнопку выше или пробел.
+            <br>
+            <br> Управление:
+            <br> "Пробел" – Выстрел.
+            <br> "Стрелочки" и "WASD" – перемещение.
+            <br> "q" – включить музыку.
+            <br> "ESC" – отключение музыки.
+        </div>
+        <!-- Footer -->
+        <footer class="w3-container w3-padding-6 w3-dark-grey footer">
+            <h4>From KSU with love
+                <3</h4>
+        </footer>
+        <!-- End page content -->
+    </div>
+
+    <script>
+        // keyboard control
+        document.body.onkeydown = document.body.onkeypress = keyboard_controler;
+        function keyboard_controler(event) {
+            if (event.type = 'keydown') {
+                // gun attack
+                if (event.key == ' ') {
+                    window.open("https://manaleks.azurewebsites.net/game","_self")
+                }
+            }
+        }
+
+    </script>
+</body>
+
+</html>
