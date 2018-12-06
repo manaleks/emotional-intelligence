@@ -54,6 +54,7 @@
                 var cell = document.createElement("div");
                 cell.setAttribute('class', 'cell')
                 cell.setAttribute('style', 'background-color: black;')
+                cell.setAttribute("onclick","mouse_controler()")
                 row.appendChild(cell);
             }
             space.appendChild(row);
@@ -190,6 +191,7 @@
             }
             else {
                 set_invader(y, x, 'black', invader_conf);
+                end_game();
             }
         }
 
@@ -228,6 +230,26 @@
             }
         }
         set_defender(def_column, def_row, def_size, def_color);
+
+        function mouse_controler() {
+            // gun attack
+            if (gun_shots > 0) {
+                // play sound
+                if (gun_sound_numder == gun_shots_all) {
+                    gun_sound_numder = gun_sound_numder_all;
+                }
+                var gun_sound = document.getElementById("gun_attack" + gun_sound_numder);
+                gun_sound.play();
+
+                // make visualisation
+                piu(def_column - 1, def_row);
+
+                // count shots
+                gun_shots--;
+                setTimeout(gun_cooldown, 3000);
+                gun_sound_numder++;
+            }
+        }
 
         // keyboard control
         document.body.onkeydown = document.body.onkeypress = keyboard_controler;
