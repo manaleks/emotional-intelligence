@@ -15,6 +15,11 @@ os.environ['DBUSER'] = "bockchaincontroller"
 os.environ['DBNAME'] = "bockchain"
 os.environ['DBPASS'] = "supersecretpass"
 """
+os.environ['DBHOST'] = "localhost"
+os.environ['DBUSER'] = "emotional_manager"
+os.environ['DBNAME'] = "emotional_db"
+os.environ['DBPASS'] = "emotionalpass"
+
 
 emotional_db_writer_config = {
                             "DBHOST":os.environ['DBHOST'],
@@ -23,28 +28,36 @@ emotional_db_writer_config = {
                             "DBPASS":os.environ['DBPASS']
                             }
 
+# Blockchain database work
+'''
+DROP TABLE IF EXISTS block;
+CREATE TABLE block (
+    id SERIAL PRIMARY KEY,
+    creditor VARCHAR(255),
+    recipient VARCHAR(255),
+    amount VARCHAR(255),
+    hash VARCHAR(255),
+    before_id INTEGER,
+    CONSTRAINT block_before_id_fkey FOREIGN KEY (before_id)
+        REFERENCES block (id)
+);
+INSERT INTO block (id, creditor, recipient, amount, hash) 
+VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');
+'''
+
 create_commands = [
-                    # Blockchain database work
-                    '''
-                    DROP TABLE IF EXISTS block;
-                    CREATE TABLE block (
-                        id SERIAL PRIMARY KEY,
-                        creditor VARCHAR(255),
-                        recipient VARCHAR(255),
-                        amount VARCHAR(255),
-                        hash VARCHAR(255),
-                        before_id INTEGER,
-                        CONSTRAINT block_before_id_fkey FOREIGN KEY (before_id)
-                            REFERENCES block (id)
-                    );
-                    INSERT INTO block (id, creditor, recipient, amount, hash) 
-                    VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');
-                    ''',
                     # DROP tables, functions and triggers
                     """
                     DROP TRIGGER IF EXISTS event_stamp_tr ON event;
+                    DROP TRIGGER IF EXISTS actual_feeling_stamp_tr ON actual_feeling;
+                    DROP TRIGGER IF EXISTS actual_feeling_tag_stamp_tr ON actual_feeling_tag;
+                    DROP TRIGGER IF EXISTS feeling_object_tag_stamp_tr ON feeling_object_tag;
+                    DROP TRIGGER IF EXISTS event_tag_stamp_tr ON event_tag;
                     DROP FUNCTION IF EXISTS event_stamp();
-                    DROP FUNCTION IF EXISTS get_report(user_name text);
+
+
+                    DROP FUNCTION IF EXISTS get_actual_feelings(user_name text, pass_hash text);
+                    DROP FUNCTION IF EXISTS get_events(user_name text, pass_hash text);
 
                     DROP TABLE IF EXISTS event_tag;
                     DROP TABLE IF EXISTS actual_feeling_tag;
@@ -156,6 +169,7 @@ create_commands = [
                     """,
                     # Create triggers
                     """
+                    -- event insert
                     CREATE OR REPLACE FUNCTION event_stamp() 
                         RETURNS trigger AS $event_stamp$
                             BEGIN
@@ -168,22 +182,8 @@ create_commands = [
                                     RAISE EXCEPTION 'user not equal feeling_before user';
                                 END IF;
 
-                                IF NEW.user_id != (SELECT a.user_id FROM actual_feeling a WHERE a.id = NEW.feeling_before_id) THEN
-                                    RAISE EXCEPTION 'user not equal feeling_before user';
-                                END IF;
-
                                 IF NEW.user_id != (SELECT a.user_id FROM actual_feeling a WHERE a.id = NEW.feeling_after_id) THEN
                                     RAISE EXCEPTION 'user not equal feeling_after user';
-                                END IF;
-
-                                IF NEW.feeling_before_id IS NOT NULL AND NEW.feeling_after_id IS NOT NULL AND
-                                    (SELECT a.user_id 
-                                    FROM actual_feeling a 
-                                    JOIN actual_feeling b 
-                                    ON a.id = NEW.feeling_before_id 
-                                    AND b.id = NEW.feeling_after_id
-                                    AND a.user_id = b.user_id) IS NULL THEN
-                                    RAISE EXCEPTION 'feeling_before user not equal feeling_after user';
                                 END IF;
 
                                 -- time before < time after
@@ -193,6 +193,11 @@ create_commands = [
                                     RAISE EXCEPTION 'feeling_before can not be after the feeling_after';
                                 END IF;
 
+                                -- set time
+                                IF NEW.time IS NULL THEN
+                                    NEW.time = current_timestamp;
+                                END IF;
+
                                 RETURN NEW;
                             END;
                         $event_stamp$ LANGUAGE plpgsql;
@@ -200,7 +205,7 @@ create_commands = [
                     CREATE TRIGGER event_stamp_tr BEFORE INSERT OR UPDATE ON event
                         FOR EACH ROW EXECUTE PROCEDURE event_stamp();
 
-
+                    -- actual_feeling insert
                     CREATE OR REPLACE FUNCTION actual_feeling_stamp() 
                         RETURNS trigger AS $actual_feeling_stamp$
                             BEGIN
@@ -220,52 +225,156 @@ create_commands = [
 
                     CREATE TRIGGER actual_feeling_stamp_tr BEFORE INSERT OR UPDATE ON actual_feeling
                         FOR EACH ROW EXECUTE PROCEDURE actual_feeling_stamp();
+
+
+                    -- feeling_object_tag insert
+                    CREATE OR REPLACE FUNCTION feeling_object_tag_stamp() 
+                        RETURNS trigger AS $feeling_object_tag_stamp$
+                            BEGIN
+                                -- true ids
+                                IF (SELECT a.user_id FROM feeling_object a WHERE a.id = NEW.feeling_object_id) != (SELECT a.user_id FROM tag a WHERE a.id = NEW.tag_id) THEN
+                                    RAISE EXCEPTION 'feeling_object and tag have different owner % %', NEW.feeling_object_id, NEW.tag_id;
+                                END IF;
+                                RETURN NEW;
+                            END;
+                        $feeling_object_tag_stamp$ LANGUAGE plpgsql;
+
+                    CREATE TRIGGER feeling_object_tag_stamp_tr BEFORE INSERT OR UPDATE ON feeling_object_tag
+                        FOR EACH ROW EXECUTE PROCEDURE feeling_object_tag_stamp();
+
+                    -- actual_feeling_tag insert
+                    CREATE OR REPLACE FUNCTION actual_feeling_tag_stamp() 
+                        RETURNS trigger AS $actual_feeling_tag_stamp$
+                            BEGIN
+                                -- true ids
+                                IF (SELECT a.user_id FROM actual_feeling a WHERE a.id = NEW.actual_feeling_id) != (SELECT a.user_id FROM tag a WHERE a.id = NEW.tag_id) THEN
+                                    RAISE EXCEPTION 'actual_feeling and tag have different owner % %', NEW.actual_feeling_id, NEW.tag_id;
+                                END IF;
+                                RETURN NEW;
+                            END;
+                        $actual_feeling_tag_stamp$ LANGUAGE plpgsql;
+
+                    CREATE TRIGGER actual_feeling_tag_stamp_tr BEFORE INSERT OR UPDATE ON actual_feeling_tag
+                        FOR EACH ROW EXECUTE PROCEDURE actual_feeling_tag_stamp();
+
+                    -- event_tag insert
+                    CREATE OR REPLACE FUNCTION event_tag_stamp() 
+                        RETURNS trigger AS $event_tag_stamp$
+                            BEGIN
+                                -- true ids
+                                IF (SELECT a.user_id FROM event a WHERE a.id = NEW.event_id) != (SELECT a.user_id FROM tag a WHERE a.id = NEW.tag_id) THEN
+                                    RAISE EXCEPTION 'event and tag have different owner % %', NEW.event_id, NEW.tag_id;
+                                END IF;
+                                RETURN NEW;
+                            END;
+                        $event_tag_stamp$ LANGUAGE plpgsql;
+
+                    CREATE TRIGGER event_tag_stamp_tr BEFORE INSERT OR UPDATE ON event_tag
+                        FOR EACH ROW EXECUTE PROCEDURE event_tag_stamp();
                     """,
-                    # Create procedures
+                    # Create functions
                     """
-                    CREATE OR REPLACE FUNCTION get_report(user_name text)
-                    RETURNS TABLE (id INTEGER, user_id INTEGER, report_time timestamp) AS $$
-                        SELECT a.id, a.user_id, a.time
-                        FROM actual_feeling a
-                        JOIN emotional_user ON emotional_user.id = a.user_id
-                        WHERE emotional_user.name = user_name;
+                    -- Get users actual_feelings by name
+                    CREATE OR REPLACE FUNCTION get_actual_feelings(user_name text, pass_hash text)
+                    RETURNS TABLE (feeling VARCHAR(20), color VARCHAR(10), 
+                                    feeling_object VARCHAR(20), intensity INTEGER,
+                                    report_time timestamp) AS $$
+                        SELECT 
+                            f.name feeling,
+                            c.code color, 
+                            fo.name feeling_object, 
+                            af.intensity,
+                            af.time
+                        FROM actual_feeling af
+                        JOIN emotional_user eu ON eu.id = af.user_id
+                        LEFT JOIN feeling_object fo ON fo.id = af.feeling_object_id
+                        LEFT JOIN feeling f ON f.id = af.feeling_id
+                        LEFT JOIN color c ON c.id = f.color_id
+                        WHERE 1=1
+                            AND eu.name = user_name
+                            AND eu.pass_hash = pass_hash;
+                    $$ LANGUAGE SQL;
+
+                    -- Get users events by name
+                    CREATE OR REPLACE FUNCTION get_events(user_name text, pass_hash text)
+                    RETURNS TABLE (
+                                    event_name VARCHAR(100),
+                                    descriprion VARCHAR(255),
+                                    event_time timestamp,
+                                    place VARCHAR(100),
+                                    after_feeling VARCHAR(20), after_color VARCHAR(10), 
+                                    after_feeling_object VARCHAR(20), after_intensity INTEGER,
+                                    after_time timestamp,
+                                    before_feeling VARCHAR(20), before_color VARCHAR(10), 
+                                    before_feeling_object VARCHAR(20), before_intensity INTEGER,
+                                    before_time timestamp) AS $$
+                        SELECT 
+                            e.name event_name,
+                            e.description description,
+                            e.time event_time,
+                            e.place,
+
+                            f1.name before_feeling,
+                            c1.code before_color, 
+                            fo1.name before_feeling_object, 
+                            af1.intensity before_intensity,
+                            af1.time before_time,
+
+                            f2.name after_feeling,
+                            c2.code after_color, 
+                            fo2.name after_feeling_object, 
+                            af2.intensity after_intensity,
+                            af2.time after_time
+                        FROM event e
+                        JOIN emotional_user eu ON eu.id = e.user_id
+                        LEFT JOIN actual_feeling af1 ON af1.id = e.feeling_before_id
+                            LEFT JOIN feeling_object fo1 ON fo1.id = af1.feeling_object_id
+                            LEFT JOIN feeling f1 ON f1.id = af1.feeling_id
+                            LEFT JOIN color c1 ON c1.id = f1.color_id
+                        LEFT JOIN actual_feeling af2 ON af2.id = e.feeling_after_id
+                            LEFT JOIN feeling_object fo2 ON fo2.id = af2.feeling_object_id
+                            LEFT JOIN feeling f2 ON f2.id = af2.feeling_id
+                            LEFT JOIN color c2 ON c2.id = f2.color_id
+                        WHERE 1=1
+                            AND eu.name = user_name
+                            AND eu.pass_hash = pass_hash;
                     $$ LANGUAGE SQL;
                     """,
                     # Insert data
                     '''
-                    INSERT INTO color (id, name) 
+                    INSERT INTO color (name) 
                     VALUES 	
-                        (1, 'red'),
-                        (2, 'green'),
-                        (3, 'blue'),
-                        (4, 'white'),
-                        (5, 'black'),
-                        (6, 'yellow'),
-                        (7, 'orange'),
-                        (8, 'purpure');
+                        ('red'),
+                        ('green'),
+                        ('blue'),
+                        ('white'),
+                        ('black'),
+                        ('yellow'),
+                        ('orange'),
+                        ('purpure');
 
-                    INSERT INTO feeling (id, name) 
+                    INSERT INTO feeling (name, color_id) 
                     VALUES 	
-                        (1, 'joy'),
-                        (2, 'trust'),
-                        (3, 'anger'),
-                        (4, 'anticipation'),
-                        (5, 'disgust'),
-                        (6, 'sadness'),
-                        (7, 'surprise'),
-                        (8, 'fear');
+                        ('joy', 6),
+                        ('trust', 2),
+                        ('anger', 1),
+                        ('anticipation', 4),
+                        ('disgust', 8),
+                        ('sadness', 3),
+                        ('surprise', 7),
+                        ('fear', 5);
 
                     INSERT INTO emotional_user (id, name, pass_hash, email, registration_date) 
                     VALUES  
                         (1, 'Aleks', md5('helloworld'), 'manaleksdev@gmail.com', current_timestamp),
                         (2, 'Natasha', md5('helloworld'), '',current_timestamp);
 
-                    INSERT INTO feeling_object (id, user_id, name) 
+                    INSERT INTO feeling_object (user_id, name) 
                     VALUES  
-                        (1, 1, 'Work'),
-                        (2, 1, 'KSU'),
-                        (3, 2, 'Eat'),
-                        (4, 2, 'Sport');
+                        (1, 'Work'),
+                        (1, 'KSU'),
+                        (2, 'Eat'),
+                        (2, 'Sport');
 
                     INSERT INTO actual_feeling (user_id, feeling_id, feeling_object_id, intensity, time)
                     VALUES 
@@ -274,33 +383,42 @@ create_commands = [
                         (1, 3, 2, 10, current_timestamp),
                         (1, 2, 2, 1, current_timestamp);
                             
-                    INSERT INTO event (user_id, feeling_before_id, feeling_after_id, name) 
+                    INSERT INTO event (user_id, feeling_before_id, feeling_after_id, name, description, place) 
                     VALUES 
-                        (1, 1, 4, 'hello'),
-                        (1, 1, 3, 'hello'),
-                        (1, 1, Null, 'hello'),
-                        (1, Null, Null, 'hello');
+                        (1, 1, 3, 'first kiss', 'i remember, it was beautiful', 'girlfriend home'),
+                        (1, 3, 4, 'fight', 'run, forest, run', 'outside'),
+                        (1, 1, Null, 'exam', 'i sleep too much', 'home'),
+                        (1, Null, Null, 'test event', '' , ''),
+                        (2, Null, Null, 'hello', '', '');
 
-                    INSERT INTO tag (id, user_id, color_id, name) 
+                    INSERT INTO tag (user_id, color_id, name) 
                     VALUES 
-                        (1, 1, 1, 'I do now like it'),
-                        (2, 2, 4, 'My best day'),
-                        (3, 2, 5, 'University'),
-                        (4, 1, 2, 'travel');
+                        (1, 1, 'I do now like it'),
+                        (1, 4, 'My best day'),
+                        (2, 5, 'University'),
+                        (2, 2, 'travel'),
+                        (1, 2, 'money');
 
                     INSERT INTO feeling_object_tag (feeling_object_id, tag_id) 
                     VALUES 
                         (1, 1),
-                        (2, 2),
-                        (3, 2),
+                        (2, 1),
+                        (3, 4),
+                        (4, 3);
+
+                    INSERT INTO actual_feeling_tag (actual_feeling_id, tag_id) 
+                    VALUES 
+                        (2, 3),
+                        (2, 4),
+                        (1, 1),
                         (4, 1);
 
                     INSERT INTO event_tag (event_id, tag_id) 
                     VALUES 
                         (1, 1),
                         (1, 2),
-                        (1, 4),
-                        (1, 3);
+                        (4, 5),
+                        (3, 5);
                     '''
 ]
 
@@ -380,8 +498,8 @@ def emotional_index():
             # Get result
             querry =    '''
                             SELECT * 
-                            FROM get_report('{}') 
-                        '''.format(user)
+                            FROM get_events('{}', md5('{}')) 
+                        '''.format(user,'helloworld')
             result = emot_db.select(command=querry)
         else: 
             result = []
