@@ -15,11 +15,12 @@ os.environ['DBUSER'] = "bockchaincontroller"
 os.environ['DBNAME'] = "bockchain"
 os.environ['DBPASS'] = "supersecretpass"
 """
+"""
 os.environ['DBHOST'] = "localhost"
 os.environ['DBUSER'] = "emotional_manager"
 os.environ['DBNAME'] = "emotional_db"
 os.environ['DBPASS'] = "emotionalpass"
-
+"""
 
 emotional_db_writer_config = {
                             "DBHOST":os.environ['DBHOST'],
