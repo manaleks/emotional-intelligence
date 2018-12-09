@@ -2,7 +2,7 @@
 
 {% block content%}
 
-    <form action="{{ url_for('blockchain_index') }}" method="POST" style="margin: 20px 0px 20px 0px">
+    <form action="{{ url_for('blockchain') }}" method="POST" style="margin: 20px 0px 20px 0px">
         <div class="form-group">
             <input type="text" class="form-control" id="exampleInputLender1" placeholder="lender" name="lender"
             value="{{request.form.get('lender','')}}">

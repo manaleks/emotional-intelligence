@@ -16,12 +16,12 @@ os.environ['DBNAME'] = "bockchain"
 os.environ['DBPASS'] = "supersecretpass"
 """
 
-'''
+"""
 os.environ['DBHOST'] = "localhost"
 os.environ['DBUSER'] = "emotional_manager"
 os.environ['DBNAME'] = "emotional_db"
 os.environ['DBPASS'] = "emotionalpass"
-'''
+"""
 
 emotional_db_writer_config = {
                             "DBHOST":os.environ['DBHOST'],
@@ -480,25 +480,26 @@ def gameover():
 
 # BLOCKCHAIN
 @app.route('/blockchain', methods=['GET', 'POST'])
-def blockchain_index():
+def blockchain():
     if request.method == 'POST':
         lender = request.form['lender']
         amount = request.form['amount']
         borrower = request.form['borrower']
 
         B_chain.write_block(name=lender, amount=amount, to_whom=borrower, hash='')
-    return render_template('blockchain_index.html')
+    return render_template('blockchain.html')
 
 @app.route('/blockchain/checking', methods=['GET'])
 def blockchain_check():
     results = B_chain.check_integrity()
-    return render_template('blockchain_index.html', results=results)
+    return render_template('blockchain.html', results=results)
+
 
 
 # Emotional
 feelings = ['joy','trust', 'anger','anticipation','disgust','sadness','surprise','fear']
 @app.route('/emotional', methods=['GET', 'POST'])
-def emotional_index():
+def emotional():
     if request.method == 'POST':
         feeling = request.form['feeling']
         user = request.form['user']
@@ -528,9 +529,9 @@ def emotional_index():
         else: 
             result = []
 
-        return render_template('emotional_index.html', feelings=feelings, data=result)
+        return render_template('emotional.html', feelings=feelings, data=result)
 
-    return render_template('emotional_index.html', feelings=feelings)
+    return render_template('emotional.html', feelings=feelings)
 
 if __name__ == "__main__":
     app.run(debug=True)
