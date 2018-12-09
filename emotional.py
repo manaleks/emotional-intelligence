@@ -1,4 +1,4 @@
-import pandas as pd
+# import pandas as pd
 
 create_commands = [
                     # DROP tables, functions and triggers
