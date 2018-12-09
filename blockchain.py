@@ -1,5 +1,37 @@
 import hashlib
 
+
+"""
+os.environ['DBHOST'] = "localhost"
+os.environ['DBUSER'] = "bockchaincontroller"
+os.environ['DBNAME'] = "bockchain"
+os.environ['DBPASS'] = "supersecretpass"
+"""
+
+# Blockchain database work
+blockchain_create_commands = [
+                                """
+                                DROP TABLE IF EXISTS block;
+                                """,
+                                """
+                                CREATE TABLE block (
+                                    id SERIAL PRIMARY KEY,
+                                    creditor VARCHAR(255),
+                                    recipient VARCHAR(255),
+                                    amount VARCHAR(255),
+                                    hash VARCHAR(255),
+                                    before_id INTEGER,
+                                    CONSTRAINT block_before_id_fkey FOREIGN KEY (before_id)
+                                    REFERENCES block (id)
+                                );
+                                """,
+                                """
+                                INSERT INTO block (id, creditor, recipient, amount, hash) 
+                                VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');
+                                """
+]
+
+
 class Blockchain(object):
     """docstring"""
 

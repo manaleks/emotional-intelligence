@@ -1,6 +1,6 @@
 import psycopg2
 
-class EmotionalDB(object):
+class dbhelper(object):
     """docstring"""
     
     def __init__(self, db_params, create_commands):
