@@ -89,4 +89,4 @@ ENV/
 .ropeproject
 
 # config files
-db_config.py
+config.py
