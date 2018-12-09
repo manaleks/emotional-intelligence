@@ -36,10 +36,6 @@
     <div id="space" class="space-container">
     </div>
 
-    <audio id='background_music' class='audio' style='visibility:hidden;' controls>
-        <source src="{{ url_for('static', filename='invaders_must_die.mp3') }}" type="audio/mpeg">
-    </audio>
-
     <script>
         // Create space
         var space = document.getElementById("space");
@@ -60,13 +56,20 @@
             space.appendChild(row);
         }
 
+        var music  = new Audio();
+        var music_src  = document.createElement("source");
+        music_src.type = "audio/mpeg";
+        music_src.src  = "{{ url_for('static', filename='invaders_must_die.mp3') }}";
+        music.appendChild(music_src);
+        music.load();
+
         // Game global vars
         // just put color in cell
         function end_game() {
-            var music = document.getElementById('background_music');
             music.pause();
             music.cuttentTime = 0.0;
             window.open("https://manaleks.azurewebsites.net/gameover", "_self");
+           //window.open("http://localhost:5000/game", "_self");
         }
         function draw_cell(y, x, color) {
             var draw_row = document.getElementById(y);
@@ -102,17 +105,6 @@
         var gun_shots_all = 40;
         var gun_shots = gun_shots_all;
         var piu_speed = 1 / 10;
-        for (var sound_num = gun_sound_numder_all; sound_num < gun_shots_all; sound_num++) {
-            var gun_sound = document.createElement("audio");
-            gun_sound.setAttribute("id", "gun_attack" + sound_num);
-            var gun_sound_src = document.createElement("source");
-            gun_sound_src.setAttribute("src", "{{ url_for('static', filename='gun_attack.wav') }}");
-            gun_sound_src.setAttribute("type", "audio/wav")
-            gun_sound.appendChild(gun_sound_src);
-            gun_sound.setAttribute("preload", "auto");
-            space.appendChild(gun_sound);
-            gun_sound.load()
-        }
         function gun_cooldown() {
             gun_shots++;
         }
@@ -258,12 +250,12 @@
                 // gun attack
                 if (event.key == ' ') {
                     if (gun_shots > 0) {
-                        // play sound
-                        if (gun_sound_numder == gun_shots_all) {
-                            gun_sound_numder = gun_sound_numder_all;
-                        }
-                        var gun_sound = document.getElementById("gun_attack" + gun_sound_numder);
-                        gun_sound.play();
+                        var snd2  = new Audio();
+                        var src2  = document.createElement("source");
+                        src2.type = "audio/wav";
+                        src2.src  = "{{ url_for('static', filename='gun_attack.wav') }}";
+                        snd2.appendChild(src2);
+                        snd2.play();
 
                         // make visualisation
                         piu(def_column - 1, def_row);
@@ -274,14 +266,8 @@
                         gun_sound_numder++;
                     }
                 }
-                // play music
-                if (event.key == 'q') {
-                    var music = document.getElementById('background_music');
-                    music.play();
-                }
                 // end || stop music
                 if (event.key == 'Escape') {
-                    var music = document.getElementById('background_music');
                     music.pause();
                     music.cuttentTime = 0.0;
                 }

@@ -15,12 +15,13 @@ os.environ['DBUSER'] = "bockchaincontroller"
 os.environ['DBNAME'] = "bockchain"
 os.environ['DBPASS'] = "supersecretpass"
 """
-"""
+
+'''
 os.environ['DBHOST'] = "localhost"
 os.environ['DBUSER'] = "emotional_manager"
 os.environ['DBNAME'] = "emotional_db"
 os.environ['DBPASS'] = "emotionalpass"
-"""
+'''
 
 emotional_db_writer_config = {
                             "DBHOST":os.environ['DBHOST'],
@@ -40,7 +41,7 @@ CREATE TABLE block (
     hash VARCHAR(255),
     before_id INTEGER,
     CONSTRAINT block_before_id_fkey FOREIGN KEY (before_id)
-        REFERENCES block (id)
+    REFERENCES block (id)
 );
 INSERT INTO block (id, creditor, recipient, amount, hash) 
 VALUES (1, 'GENESIS BLOCK C', 'GENESIS BLOCK R', 'GENESIS BLOCK A', 'GENESIS BLOCK HASH');
@@ -67,6 +68,8 @@ create_commands = [
                     DROP TABLE IF EXISTS event;
                     DROP TABLE IF EXISTS actual_feeling;
                     DROP TABLE IF EXISTS feeling_object;
+                    DROP TABLE IF EXISTS feel_group_user;
+                    DROP TABLE IF EXISTS feel_group;
                     DROP TABLE IF EXISTS emotional_user;
                     DROP TABLE IF EXISTS feeling;
                     DROP TABLE IF EXISTS color;
@@ -91,6 +94,23 @@ create_commands = [
                         pass_hash VARCHAR(100),
                         email VARCHAR(100) UNIQUE,
                         registration_date timestamp
+                    );
+                    CREATE TABLE feel_group (
+                        id SERIAL PRIMARY KEY,
+                        creator_id integer UNIQUE,  
+                        name VARCHAR(100),
+                        create_date timestamp,
+                        CONSTRAINT creator_id_fkey FOREIGN KEY (creator_id)
+                        REFERENCES emotional_user (id)
+                    );
+                    CREATE TABLE feel_group_user (
+                        feel_group_id INTEGER,
+                        user_id INTEGER,
+                        CONSTRAINT feel_group_user_id_fkey FOREIGN KEY (feel_group_id)
+                        REFERENCES feel_group (id),
+                        CONSTRAINT user_feel_group_id_fkey FOREIGN KEY (user_id)
+                        REFERENCES emotional_user (id),
+                        PRIMARY KEY(feel_group_id, user_id)
                     );
                     CREATE TABLE feeling_object (
                         id SERIAL PRIMARY KEY,
@@ -131,9 +151,12 @@ create_commands = [
                     );
                     CREATE TABLE tag (
                         id SERIAL PRIMARY KEY,
+                        meta_tag_id INTEGER,
                         user_id INTEGER,
                         color_id SMALLINT,
                         name VARCHAR(20),
+                        CONSTRAINT meta_tag_id_fkey FOREIGN KEY (meta_tag_id)
+                        REFERENCES tag (id),
                         CONSTRAINT tag_user_id_fkey FOREIGN KEY (user_id)
                         REFERENCES emotional_user (id),
                         CONSTRAINT tag_color_id_fkey FOREIGN KEY (color_id)
