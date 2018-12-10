@@ -12,9 +12,13 @@
     <!-- версия для разработки, отображает полезные предупреждения в консоли -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 
-    <!-->GRAF WORK-->
+    <!-- GRAF WORK -->
     <script type="text/javascript" src="{{ url_for('static', filename='vis.js') }}"></script>
     <link href="{{ url_for('static', filename='vis.css') }}" rel="stylesheet" type="text/css" />
+
+    <!-- ICONS -->
+    <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+
 
     <style type="text/css">
         #mynetwork {
@@ -56,6 +60,12 @@
         }
     </style>
 </head>
+
+
+
+
+
+
 
 <body class="w3-light-grey">
     <!-- Top container -->
@@ -134,69 +144,100 @@
         function keyboard_controler(event) {
             if (event.type = 'keydown') {
                 if (event.key == 'Enter') {
-                    //network.enableEditMode();
-                    network.deleteSelected();
                 }
 
-                // draw graf
-                if (event.key == ' ') {
-                    // create an array with nodes
-                    var nodes = new vis.DataSet([
-                        { id: 1, label: 'Node 1' },
-                        { id: 2, label: 'Node 2' },
-                        { id: 3, label: 'Node 3' },
-                        { id: 4, label: 'Node 4' },
-                        { id: 5, label: 'Node 5' },
-                        { id: 6, label: 'Node 6' }
-                    ]);
+            
 
-                    // create an array with edges
-                    var edges = new vis.DataSet([
-                        { from: 1, to: 3 },
-                        { from: 1, to: 2 },
-                        { from: 2, to: 4 },
-                        { from: 2, to: 5 },
-                        { from: 1, to: 6 }
-                    ]);
 
-                    // create a network
-                    var container = document.getElementById('mynetwork');
+            // draw graf
+            if (event.key == ' ') {
+                // create an array with nodes
+                var nodes = new vis.DataSet([
+                    { id: 1, group: 'users', label: 'Node 1' },
+                    { id: 2, group: 'users', label: 'Node 2' },
+                    { id: 3, group: 'objects', label: 'Node 3' },
+                    { id: 4, group: 'objects', label: 'Node 4' },
+                    { id: 5, group: 'objects', label: 'Node 5' },
+                    { id: 6, group: 'objects', label: 'Node 6' }
+                ]);
 
-                    // provide the data in the vis format
-                    var data = {
-                        nodes: nodes,
-                        edges: edges
-                    };
+                // create an array with edges
+                var edges = new vis.DataSet([
+                    { from: 1, to: 3 },
+                    { from: 1, color: 'green', to: 2 },
+                    { from: 1, to: 5 },
+                    { from: 1, to: 6 },
+                    { from: 2, to: 4 },
+                    { from: 2, to: 5 },
+                    { from: 2, to: 6 }
 
-                    var locales = {
-                        en: {
-                            edit: 'Edit',
-                            del: 'Delete selected',
-                            back: 'Back',
-                            addNode: 'Add Node',
-                            addEdge: 'Add Edge',
-                            editNode: 'Edit Node',
-                            editEdge: 'Edit Edge',
-                            addDescription: 'Click in an empty space to place a new node.',
-                            edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
-                            editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
-                            createEdgeError: 'Cannot link edges to a cluster.',
-                            deleteClusterError: 'Clusters cannot be deleted.',
-                            editClusterError: 'Clusters cannot be edited.'
-                        }
-                    }
-                    var options = {
-                        autoResize: true,
-                        height: '100%',
-                        width: '100%',
-                        locale: 'en',
-                        locales: locales
-                    }
+                ]);
 
-                    // initialize your network!
-                    network = new vis.Network(container, data, options);
+                // create a network
+                var container = document.getElementById('mynetwork');
+
+                // provide the data in the vis format
+                var data = {
+                    nodes: nodes,
+                    edges: edges
+                };
+
+                var options = {
+                    autoResize: true,
+                    height: '100%',
+                    width: '100%',
+                    locale: 'en',
+                    edges: {
+                        arrows: 'to',
+
+                    },
+                    groups: {
+                            objects: {
+                                shape: 'icon',
+                                icon: {
+                                    face: 'Ionicons',
+                                    code: '\uf400',
+                                    size: 50,
+                                    color: '#07169a'
+                                }
+                            },
+                            users: {
+                                shape: 'icon',
+                                icon: {
+                                    face: 'Ionicons',
+                                    code: '\uf47e',
+                                    size: 50,
+                                    color: '#aa22dd'
+                                }
+                            }},
+                    manipulation: {
+                        enabled: true,
+                        initiallyActive: false,
+                        addNode: function (nodeData, callback) {
+                            nodeData.shape = 'icon';
+                            nodeData.icon = {
+                                    face: 'Ionicons',
+                                    code: '\uf47e',
+                                    size: 50,
+                                    color: '#aa22dd'
+                                };
+                            callback(nodeData);
+                        },
+                        addEdge: true,
+                        editNode: true,
+                        editEdge: true,
+                        deleteNode: true,
+                        deleteEdge: true
+                    },
+                    interaction: {
+                        multiselect: true,
+                    },
                 }
+
+                // initialize your network!
+                network = new vis.Network(container, data, options);
             }
+        }
         }
     </script>
 </body>

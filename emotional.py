@@ -46,19 +46,20 @@ create_commands = [
                         name VARCHAR(100),
                         pass_hash VARCHAR(100),
                         email VARCHAR(100) UNIQUE,
-                        registration_date timestamp
+                        start_date timestamp
                     );
                     CREATE TABLE feel_group (
                         id SERIAL PRIMARY KEY,
                         creator_id integer UNIQUE,  
                         name VARCHAR(100),
-                        create_date timestamp,
+                        start_date timestamp,
                         CONSTRAINT creator_id_fkey FOREIGN KEY (creator_id)
                         REFERENCES emotional_user (id)
                     );
                     CREATE TABLE feel_group_user (
                         feel_group_id INTEGER,
                         user_id INTEGER,
+                        start_date timestamp,
                         CONSTRAINT feel_group_user_id_fkey FOREIGN KEY (feel_group_id)
                         REFERENCES feel_group (id),
                         CONSTRAINT user_feel_group_id_fkey FOREIGN KEY (user_id)
@@ -69,6 +70,7 @@ create_commands = [
                         id SERIAL PRIMARY KEY,
                         user_id INTEGER,
                         name VARCHAR(20),
+                        start_date timestamp,
                         CONSTRAINT feeling_object_user_id_fkey FOREIGN KEY (user_id)
                         REFERENCES emotional_user (id)
                     );
@@ -108,6 +110,7 @@ create_commands = [
                         user_id INTEGER,
                         color_id SMALLINT,
                         name VARCHAR(20),
+                        start_date timestamp,
                         CONSTRAINT meta_tag_id_fkey FOREIGN KEY (meta_tag_id)
                         REFERENCES tag (id),
                         CONSTRAINT tag_user_id_fkey FOREIGN KEY (user_id)
@@ -341,7 +344,7 @@ create_commands = [
                         ('surprise', 7),
                         ('fear', 5);
 
-                    INSERT INTO emotional_user (id, name, pass_hash, email, registration_date) 
+                    INSERT INTO emotional_user (id, name, pass_hash, email, start_date) 
                     VALUES  
                         (1, 'Aleks', md5('helloworld'), 'manaleksdev@gmail.com', current_timestamp),
                         (2, 'Natasha', md5('helloworld'), '',current_timestamp);
