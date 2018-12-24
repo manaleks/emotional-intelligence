@@ -50,10 +50,10 @@ create_commands = [
                     );
                     CREATE TABLE feel_group (
                         id SERIAL PRIMARY KEY,
-                        creator_id integer UNIQUE,  
+                        user_id integer UNIQUE,  
                         name VARCHAR(100),
                         start_date timestamp,
-                        CONSTRAINT creator_id_fkey FOREIGN KEY (creator_id)
+                        CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
                         REFERENCES emotional_user (id)
                     );
                     CREATE TABLE feel_group_user (
@@ -68,19 +68,25 @@ create_commands = [
                     );
                     CREATE TABLE feeling_object (
                         id SERIAL PRIMARY KEY,
+                        feel_group_id INTEGER,
                         user_id INTEGER,
                         name VARCHAR(20),
                         start_date timestamp,
+                        CONSTRAINT feeling_object_fell_group_id_fkey FOREIGN KEY (feel_group_id)
+                        REFERENCES feel_group (id),
                         CONSTRAINT feeling_object_user_id_fkey FOREIGN KEY (user_id)
                         REFERENCES emotional_user (id)
                     );
                     CREATE TABLE actual_feeling (
                         id SERIAL PRIMARY KEY,
+                        feel_group_id INTEGER,
                         user_id INTEGER,
                         feeling_id SMALLINT,
                         feeling_object_id INTEGER,
                         intensity INTEGER CHECK (intensity > 0 and intensity <= 10),
                         time timestamp,
+                        CONSTRAINT feeling_object_fell_group_id_fkey FOREIGN KEY (feel_group_id)
+                        REFERENCES feel_group (id),
                         CONSTRAINT actual_feeling_user_id_fkey FOREIGN KEY (user_id)
                         REFERENCES emotional_user (id),
                         CONSTRAINT actual_feeling_feeling_id_fkey FOREIGN KEY (feeling_id)
@@ -90,6 +96,7 @@ create_commands = [
                     );
                     CREATE TABLE event (
                         id SERIAL PRIMARY KEY,
+                        feel_group_id INTEGER,
                         user_id INTEGER,
                         feeling_before_id INTEGER,
                         feeling_after_id INTEGER,
@@ -97,6 +104,8 @@ create_commands = [
                         time timestamp,
                         place VARCHAR(100),
                         description VARCHAR(255),
+                        CONSTRAINT feeling_object_fell_group_id_fkey FOREIGN KEY (feel_group_id)
+                        REFERENCES feel_group (id),
                         CONSTRAINT event_user_id_fkey FOREIGN KEY (user_id)
                         REFERENCES emotional_user (id),
                         CONSTRAINT event_feeling_before_id_fkey FOREIGN KEY (feeling_before_id)
@@ -107,12 +116,15 @@ create_commands = [
                     CREATE TABLE tag (
                         id SERIAL PRIMARY KEY,
                         meta_tag_id INTEGER,
+                        feel_group_id INTEGER,
                         user_id INTEGER,
                         color_id SMALLINT,
                         name VARCHAR(20),
                         start_date timestamp,
                         CONSTRAINT meta_tag_id_fkey FOREIGN KEY (meta_tag_id)
                         REFERENCES tag (id),
+                        CONSTRAINT feeling_object_fell_group_id_fkey FOREIGN KEY (feel_group_id)
+                        REFERENCES feel_group (id),
                         CONSTRAINT tag_user_id_fkey FOREIGN KEY (user_id)
                         REFERENCES emotional_user (id),
                         CONSTRAINT tag_color_id_fkey FOREIGN KEY (color_id)
@@ -335,34 +347,43 @@ create_commands = [
 
                     INSERT INTO feeling (name, color_id) 
                     VALUES 	
-                        ('joy', 6),
+                        ('joy', 1),
                         ('trust', 2),
-                        ('anger', 1),
+                        ('anger', 3),
                         ('anticipation', 4),
-                        ('disgust', 8),
-                        ('sadness', 3),
+                        ('disgust', 5),
+                        ('sadness', 6),
                         ('surprise', 7),
-                        ('fear', 5);
+                        ('fear', 8);
 
-                    INSERT INTO emotional_user (id, name, pass_hash, email, start_date) 
+                    INSERT INTO emotional_user (name, pass_hash, email, start_date) 
                     VALUES  
-                        (1, 'Aleks', md5('helloworld'), 'manaleksdev@gmail.com', current_timestamp),
-                        (2, 'Natasha', md5('helloworld'), '',current_timestamp);
+                        ('Aleks', md5('helloworld'), 'manaleksdev@gmail.com', current_timestamp),
+                        ('Natasha', md5('helloworld'), '',current_timestamp);
 
-                    INSERT INTO feeling_object (user_id, name) 
+                    INSERT INTO feel_group (user_id, name, start_date) 
                     VALUES  
-                        (1, 'Work'),
-                        (1, 'KSU'),
-                        (2, 'Eat'),
-                        (2, 'Sport');
+                        (1, '15-ИСбо-2(б)', current_timestamp);
+
+                    INSERT INTO feel_group_user (feel_group_id, user_id, start_date) 
+                    VALUES  
+                        (1, 1, current_timestamp);
+
+                    INSERT INTO feeling_object (feel_group_id, user_id, name) 
+                    VALUES  
+                        (1, 1, 'Work'),
+                        (1, 1, 'KSU'),
+                        (1, 1, 'Eat'),
+                        (1, 1, 'Sport');
 
                     INSERT INTO actual_feeling (user_id, feeling_id, feeling_object_id, intensity, time)
                     VALUES 
                         (1, 1, 1, 10, current_timestamp),
-                        (2, 1, 3, 10, current_timestamp),
-                        (1, 3, 2, 10, current_timestamp),
+                        (1, 1, 3, 5, current_timestamp),
+                        (1, 3, 2, 3, current_timestamp),
                         (1, 2, 2, 1, current_timestamp);
-                            
+
+                    /*        
                     INSERT INTO event (user_id, feeling_before_id, feeling_after_id, name, description, place) 
                     VALUES 
                         (1, 1, 3, 'first kiss', 'i remember, it was beautiful', 'girlfriend home'),
@@ -370,14 +391,18 @@ create_commands = [
                         (1, 1, Null, 'exam', 'i sleep too much', 'home'),
                         (1, Null, Null, 'test event', '' , ''),
                         (2, Null, Null, 'hello', '', '');
+                    */
 
-                    INSERT INTO tag (user_id, color_id, name) 
+                    INSERT INTO tag (meta_tag_id, feel_group_id, user_id, color_id, name) 
                     VALUES 
-                        (1, 1, 'I do now like it'),
-                        (1, 4, 'My best day'),
-                        (2, 5, 'University'),
-                        (2, 2, 'travel'),
-                        (1, 2, 'money');
+                        (NULL, 1, 1, 2, 'animal'),
+                        (1, 1, 1, 2, 'dog'),
+                        (1, 1, 1, 2, 'cat'),
+                        (NULL, 1, 1, 1, 'I do now like it'),
+                        (NULL, 1, 1, 4, 'My best day'),
+                        (NULL, 1, 2, 5, 'University'),
+                        (NULL, 1, 2, 2, 'travel'),
+                        (NULL, 1, 1, 2, 'money');
 
                     INSERT INTO feeling_object_tag (feeling_object_id, tag_id) 
                     VALUES 
@@ -393,11 +418,13 @@ create_commands = [
                         (1, 1),
                         (4, 1);
 
+                    /*
                     INSERT INTO event_tag (event_id, tag_id) 
                     VALUES 
                         (1, 1),
                         (1, 2),
                         (4, 5),
                         (3, 5);
+                    */
                     '''
 ]

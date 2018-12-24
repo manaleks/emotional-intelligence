@@ -88,13 +88,13 @@ def emotional_page():
                             (1, {}, 1, 10, current_timestamp)
                         '''.format(feeling_id[0][0])
             emot_db.insert(command=querry)
-            
             # Get result
             querry =    '''
                             SELECT * 
-                            FROM get_events('{}', md5('{}')) 
+                            FROM get_actual_feelings('{}', md5('{}')) 
                         '''.format(user,'helloworld')
             result = emot_db.select(command=querry)
+            print(result)
         else: 
             result = []
 
