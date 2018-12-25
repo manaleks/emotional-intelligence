@@ -17,7 +17,7 @@
     <link href="{{ url_for('static', filename='vis.css') }}" rel="stylesheet" type="text/css" />
 
     <!-- ICONS -->
-    <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
 
 
     <style type="text/css">
@@ -130,105 +130,109 @@
             }
         });
 
+        function draw_graf() {
+            // draw graf
+
+            // create an array with nodes
+            var nodes = new vis.DataSet([
+                { id: 1, group: 'users', label: 'Node 1' },
+                { id: 2, group: 'users', label: 'Node 2' },
+                { id: 3, group: 'objects', label: 'Node 3' },
+                { id: 4, group: 'objects', label: 'Node 4' },
+                { id: 5, group: 'objects', label: 'Node 5' },
+                { id: 6, group: 'objects', label: 'Node 6' }
+            ]);
+
+            // create an array with edges
+            var edges = new vis.DataSet([
+                { from: 1, to: 3 },
+                { from: 1, color: 'green', to: 2 },
+                { from: 1, to: 5 },
+                { from: 1, to: 6 },
+                { from: 2, to: 4 },
+                { from: 2, to: 5 },
+                { from: 2, to: 6 }
+
+            ]);
+
+            // create a network
+            var container = document.getElementById('mynetwork');
+
+            // provide the data in the vis format
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+
+            var options = {
+                autoResize: true,
+                height: '100%',
+                width: '100%',
+                locale: 'en',
+                edges: {
+                    arrows: 'to',
+
+                },
+                groups: {
+                    objects: {
+                        shape: 'icon',
+                        icon: {
+                            face: 'Ionicons',
+                            code: '\uf400',
+                            size: 50,
+                            color: '#07169a'
+                        }
+                    },
+                    users: {
+                        shape: 'icon',
+                        icon: {
+                            face: 'Ionicons',
+                            code: '\uf47e',
+                            size: 50,
+                            color: '#aa22dd'
+                        }
+                    }
+                },
+                manipulation: {
+                    enabled: true,
+                    initiallyActive: false,
+                    addNode: function (nodeData, callback) {
+                        nodeData.shape = 'icon';
+                        nodeData.icon = {
+                            face: 'Ionicons',
+                            code: '\uf47e',
+                            size: 50,
+                            color: '#aa22dd'
+                        };
+                        callback(nodeData);
+                    },
+                    addEdge: true,
+                    editNode: true,
+                    editEdge: true,
+                    deleteNode: true,
+                    deleteEdge: true
+                },
+                interaction: {
+                    multiselect: true,
+                },
+            }
+
+            // initialize your network!
+            network = new vis.Network(container, data, options);
+        }
+
         // keyboard controler
         document.body.onkeypress = keyboard_controler;
         function keyboard_controler(event) {
             if (event.type = 'keydown') {
-                if (event.key == 'Enter') {
-                }
-
-
-                // draw graf
                 if (event.key == ' ') {
-                    // create an array with nodes
-                    var nodes = new vis.DataSet([
-                        { id: 1, group: 'users', label: 'Node 1' },
-                        { id: 2, group: 'users', label: 'Node 2' },
-                        { id: 3, group: 'objects', label: 'Node 3' },
-                        { id: 4, group: 'objects', label: 'Node 4' },
-                        { id: 5, group: 'objects', label: 'Node 5' },
-                        { id: 6, group: 'objects', label: 'Node 6' }
-                    ]);
-
-                    // create an array with edges
-                    var edges = new vis.DataSet([
-                        { from: 1, to: 3 },
-                        { from: 1, color: 'green', to: 2 },
-                        { from: 1, to: 5 },
-                        { from: 1, to: 6 },
-                        { from: 2, to: 4 },
-                        { from: 2, to: 5 },
-                        { from: 2, to: 6 }
-
-                    ]);
-
-                    // create a network
-                    var container = document.getElementById('mynetwork');
-
-                    // provide the data in the vis format
-                    var data = {
-                        nodes: nodes,
-                        edges: edges
-                    };
-
-                    var options = {
-                        autoResize: true,
-                        height: '100%',
-                        width: '100%',
-                        locale: 'en',
-                        edges: {
-                            arrows: 'to',
-
-                        },
-                        groups: {
-                            objects: {
-                                shape: 'icon',
-                                icon: {
-                                    face: 'Ionicons',
-                                    code: '\uf400',
-                                    size: 50,
-                                    color: '#07169a'
-                                }
-                            },
-                            users: {
-                                shape: 'icon',
-                                icon: {
-                                    face: 'Ionicons',
-                                    code: '\uf47e',
-                                    size: 50,
-                                    color: '#aa22dd'
-                                }
-                            }
-                        },
-                        manipulation: {
-                            enabled: true,
-                            initiallyActive: false,
-                            addNode: function (nodeData, callback) {
-                                nodeData.shape = 'icon';
-                                nodeData.icon = {
-                                    face: 'Ionicons',
-                                    code: '\uf47e',
-                                    size: 50,
-                                    color: '#aa22dd'
-                                };
-                                callback(nodeData);
-                            },
-                            addEdge: true,
-                            editNode: true,
-                            editEdge: true,
-                            deleteNode: true,
-                            deleteEdge: true
-                        },
-                        interaction: {
-                            multiselect: true,
-                        },
-                    }
-
-                    // initialize your network!
-                    network = new vis.Network(container, data, options);
+                    draw_graf();
                 }
+
             }
         }
+
+        draw_graf();
     </script>
 </body>
 
