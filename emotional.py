@@ -8,9 +8,11 @@ create_commands = [
                     DROP TRIGGER IF EXISTS actual_feeling_tag_stamp_tr ON actual_feeling_tag;
                     DROP TRIGGER IF EXISTS feeling_object_tag_stamp_tr ON feeling_object_tag;
                     DROP TRIGGER IF EXISTS event_tag_stamp_tr ON event_tag;
-                    DROP FUNCTION IF EXISTS event_stamp();
 
-                    DROP FUNCTION IF EXISTS get_group_info(feel_group_name text, user_name text, pass_hash text);
+                    DROP FUNCTION IF EXISTS event_stamp();
+                    DROP FUNCTION IF EXISTS get_group_events(feel_group_name text, user_name text, pass_hash text);
+                    DROP FUNCTION IF EXISTS get_group_objects(feel_group_name text, user_name text, pass_hash text);
+                    DROP FUNCTION IF EXISTS get_group_feelings(feel_group_name text, user_name text, pass_hash_var text);
 
                     DROP TABLE IF EXISTS event_tag;
                     DROP TABLE IF EXISTS actual_feeling_tag;
@@ -24,7 +26,7 @@ create_commands = [
                     DROP TABLE IF EXISTS emotional_user;
                     DROP TABLE IF EXISTS feeling;
                     DROP TABLE IF EXISTS color;
-                    """
+                    """,
                     # Create tables
                     """
                     CREATE TABLE color (
@@ -122,7 +124,6 @@ create_commands = [
                         CONSTRAINT tag_color_id_fkey FOREIGN KEY (color_id)
                         REFERENCES color (id)
                     );
-
                     CREATE TABLE feeling_object_tag (
                         feeling_object_id INTEGER,
                         tag_id INTEGER,
@@ -172,8 +173,6 @@ create_commands = [
                     CREATE OR REPLACE FUNCTION actual_feeling_stamp() 
                         RETURNS trigger AS $actual_feeling_stamp$
                             BEGIN
-                                -- true ids
-
                                 -- set time
                                 IF NEW.time IS NULL THEN
                                     NEW.time = current_timestamp;
@@ -191,8 +190,8 @@ create_commands = [
                         RETURNS trigger AS $feeling_object_tag_stamp$
                             BEGIN
                                 -- true ids
-                                IF (SELECT a.user_id FROM feeling_object a WHERE a.id = NEW.feeling_object_id) != (SELECT a.user_id FROM tag a WHERE a.id = NEW.tag_id) THEN
-                                    RAISE EXCEPTION 'feeling_object and tag have different owner % %', NEW.feeling_object_id, NEW.tag_id;
+                                IF (SELECT a.feel_group_id FROM feeling_object a WHERE a.id = NEW.feeling_object_id) != (SELECT a.feel_group_id FROM tag a WHERE a.id = NEW.tag_id) THEN
+                                    RAISE EXCEPTION 'feeling_object and tag are in different groups % %', NEW.feeling_object_id, NEW.tag_id;
                                 END IF;
                                 RETURN NEW;
                             END;
@@ -205,8 +204,8 @@ create_commands = [
                         RETURNS trigger AS $actual_feeling_tag_stamp$
                             BEGIN
                                 -- true ids
-                                IF (SELECT a.user_id FROM actual_feeling a WHERE a.id = NEW.actual_feeling_id) != (SELECT a.user_id FROM tag a WHERE a.id = NEW.tag_id) THEN
-                                    RAISE EXCEPTION 'actual_feeling and tag have different owner % %', NEW.actual_feeling_id, NEW.tag_id;
+                                IF (SELECT a.feel_group_id FROM actual_feeling a WHERE a.id = NEW.actual_feeling_id) != (SELECT a.feel_group_id FROM tag a WHERE a.id = NEW.tag_id) THEN
+                                    RAISE EXCEPTION 'actual_feeling and tag are in different groups % %', NEW.actual_feeling_id, NEW.tag_id;
                                 END IF;
                                 RETURN NEW;
                             END;
@@ -219,8 +218,8 @@ create_commands = [
                         RETURNS trigger AS $event_tag_stamp$
                             BEGIN
                                 -- true ids
-                                IF (SELECT a.user_id FROM event a WHERE a.id = NEW.event_id) != (SELECT a.user_id FROM tag a WHERE a.id = NEW.tag_id) THEN
-                                    RAISE EXCEPTION 'event and tag have different owner % %', NEW.event_id, NEW.tag_id;
+                                IF (SELECT a.feel_group_id FROM event a WHERE a.id = NEW.event_id) != (SELECT a.feel_group_id FROM tag a WHERE a.id = NEW.tag_id) THEN
+                                    RAISE EXCEPTION 'event and tag are in different groups % %', NEW.event_id, NEW.tag_id;
                                 END IF;
                                 RETURN NEW;
                             END;
@@ -230,51 +229,76 @@ create_commands = [
                     """,
                     # Create functions
                     """
-                    -- Get users actual_feelings by name
-                    CREATE OR REPLACE FUNCTION get_actual_feelings(user_name text, pass_hash text)
-                    RETURNS TABLE (feeling VARCHAR(20), color VARCHAR(10), 
-                                    feeling_object VARCHAR(20), intensity INTEGER,
-                                    report_time timestamp) AS $$
-                        SELECT 
-                            f.name feeling,
-                            c.code color, 
-                            fo.name feeling_object, 
-                            af.intensity,
-                            af.time
-                        FROM actual_feeling af
-                        JOIN emotional_user eu ON eu.id = af.user_id
-                        LEFT JOIN feeling_object fo ON fo.id = af.feeling_object_id
-                        LEFT JOIN feeling f ON f.id = af.feeling_id
-                        LEFT JOIN color c ON c.id = f.color_id
-                        WHERE 1=1
-                            AND eu.name = user_name
-                            AND eu.pass_hash = pass_hash;
+                    -- Get group events by group_name, user_name, user_pass
+                    CREATE OR REPLACE FUNCTION get_group_events(feel_group_name text, user_name text, pass_hash text)
+                    RETURNS TABLE (event_name VARCHAR(20), evet_time TIMESTAMP, 
+                            place VARCHAR(100), description VARCHAR(255), can_change INTEGER
+                            ) AS $$
+                    SELECT 
+                        e.name,
+                        e.time, 
+                        e.place, 
+                        e.description,
+                        CASE WHEN eu.id = e.user_id THEN 1
+                        ELSE 0
+                        END can_change
+                    FROM emotional_user eu						                -- проверка имени и пароля пользователя
+                    JOIN feel_group_user fgu ON eu.id = fgu.user_id 		    -- проверка принадлежности пользователя группе 
+                    JOIN feel_group fg ON fg.id = fgu.feel_group_id			    -- проверка имени группы
+                    LEFT JOIN event e ON e.feel_group_id = fg.id
+                    WHERE 1=1
+                        AND fg.name = feel_group_name
+                        AND eu.name = user_name
+                        AND eu.pass_hash = pass_hash;
                     $$ LANGUAGE SQL;
 
-                    -- Get group info by group_name, user_name, user_pass
-                    DROP FUNCTION IF EXISTS get_group_info(feel_group_name text, user_name text, pass_hash text);
-                    CREATE OR REPLACE FUNCTION get_group_info(feel_group_name text, user_name text, pass_hash text)
-                    RETURNS TABLE (feeling VARCHAR(20), color VARCHAR(10), 
+                    -- Get group objects by group_name, user_name, user_pass
+                    CREATE OR REPLACE FUNCTION get_group_objects(feel_group_name text, user_name text, pass_hash text)
+                    RETURNS TABLE (object_name VARCHAR(20), start_time TIMESTAMP, can_change INTEGER
+                            ) AS $$
+                    SELECT 
+                        fo.name,
+                        fo.start_date, 
+                        CASE WHEN eu.id = fo.user_id THEN 1
+                        ELSE 0
+                        END can_change
+                    FROM emotional_user eu						    -- проверка имени и пароля пользователя
+                    JOIN feel_group_user fgu ON eu.id = fgu.user_id 		    -- проверка принадлежности пользователя группе 
+                    JOIN feel_group fg ON fg.id = fgu.feel_group_id			    -- проверка имени группы
+                    LEFT JOIN feeling_object fo ON fo.feel_group_id = fg.id
+                    WHERE 1=1
+                        AND fg.name = feel_group_name
+                        AND eu.name = user_name
+                        AND eu.pass_hash = pass_hash;
+                    $$ LANGUAGE SQL;
+
+                    -- Get group feelings by group_name, user_name, user_pass
+                    CREATE OR REPLACE FUNCTION get_group_feelings(feel_group_name text, user_name text, pass_hash_var text)
+                    RETURNS TABLE (user_name VARCHAR(20), feeling VARCHAR(20), color VARCHAR(10), 
                                     feeling_object VARCHAR(20), intensity INTEGER,
-                                    report_time timestamp) AS $$
+                                    report_time timestamp, can_change INTEGER) AS $$
                         SELECT 
+                            eu2.name user_name,
                             f.name feeling,
                             c.code color,
                             fo.name feeling_object,
                             af.intensity,
-                            af.time
-                            
+                            af.time,
+                            CASE WHEN eu.id = af.user_id THEN 1
+                            ELSE 0
+                            END can_change    
                         FROM emotional_user eu						                -- проверка имени и пароля пользователя
                         JOIN feel_group_user fgu ON eu.id = fgu.user_id 		    -- проверка принадлежности пользователя группе 
                         JOIN feel_group fg ON fg.id = fgu.feel_group_id			    -- проверка имени группы
-                        LEFT JOIN actual_feeling af ON eu.id = af.user_id		    -- получение чувств группы
+                        LEFT JOIN actual_feeling af ON fg.id = af.feel_group_id		-- получение чувств группы
+                        LEFT JOIN emotional_user eu2 ON eu2.id = af.user_id        -- получение имен пользователей
                         LEFT JOIN feeling_object fo ON fo.id = af.feeling_object_id	-- получение объектов группы
                         LEFT JOIN feeling f ON f.id = af.feeling_id			        -- получение чувств
                         LEFT JOIN color c ON c.id = f.color_id				        -- получение цветов
                         WHERE 1=1
 			                AND fg.name = feel_group_name
 			                AND eu.name = user_name
-                            AND eu.pass_hash = pass_hash;
+                            AND eu.pass_hash = pass_hash_var;
                     $$ LANGUAGE SQL;
                     """,
                     # Insert data
@@ -319,25 +343,24 @@ create_commands = [
                         (1, 1, 'Work'),
                         (1, 1, 'KSU'),
                         (1, 1, 'Eat'),
-                        (1, 1, 'Sport');
+                        (1, 1, 'Sport'),
+                        (1, 2, 'Computer');
 
-                    INSERT INTO actual_feeling (user_id, feeling_id, feeling_object_id, intensity, time)
+                    INSERT INTO actual_feeling (user_id, feel_group_id, feeling_id, feeling_object_id, intensity, time)
                     VALUES 
-                        (1, 1, 1, 10, current_timestamp),
-                        (1, 1, 3, 5, current_timestamp),
-                        (1, 3, 2, 3, current_timestamp),
-                        (1, 2, 2, 1, current_timestamp),
-                        (2, 2, 2, 1, current_timestamp),
-                        (2, 2, 2, 1, current_timestamp),
-                        (2, 2, 2, 1, current_timestamp);
+                        (1, 1, 1, 1, 10, current_timestamp),
+                        (1, 1, 1, 3, 5, current_timestamp),
+                        (1, 1, 3, 5, 3, current_timestamp),
+                        (1, 1, 2, 2, 10, current_timestamp),
+                        (2, 1, 2, 2, 10, current_timestamp);
                             
-                    INSERT INTO event (user_id, name, description, place) 
+                    INSERT INTO event (user_id, feel_group_id, name, description, place) 
                     VALUES 
-                        (1, 'first kiss', 'i remember, it was beautiful', 'girlfriend home'),
-                        (1, 'fight', 'run, forest, run', 'outside'),
-                        (1, 'exam', 'i sleep too much', 'home'),
-                        (1, 'test event', '' , ''),
-                        (2, 'hello', '', '');
+                        (1, 1, 'first kiss', 'i remember, it was beautiful', 'girlfriend home'),
+                        (1, 1, 'fight', 'run, forest, run', 'outside'),
+                        (1, 1, 'exam', 'i sleep too much', 'home'),
+                        (1, 1, 'test event', '' , ''),
+                        (2, 1,   'hello', '', '');
 
                     INSERT INTO tag (meta_tag_id, feel_group_id, user_id, color_id, name) 
                     VALUES 

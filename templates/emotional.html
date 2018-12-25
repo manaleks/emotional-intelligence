@@ -96,6 +96,10 @@
                             <button type="submit" class="btn btn-primary w3-black button_RUN">Submit</button>
                         </div>
                     </form>
+
+                    {% for o in data %}
+                        <div type="text" value="{{o}}"> {{o}} </div>
+                    {% endfor %}
                 </div>
 
                 <div class="w3-container w3-twothird">
