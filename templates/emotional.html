@@ -107,16 +107,6 @@
 
                     <!-- GRAF -->
                     <div id="mynetwork"></div>
-
-                    <!-- TEXt -->
-                    <div class="w3-container w3-twothird">
-                        {% for o in data %}
-                        <div type="text" value="{{o}}"> {{o}} </div>
-                        {% endfor %}
-                    </div>
-
-
-
                 </div>
             </div>
         </div>
@@ -129,6 +119,7 @@
     </div>
     <script type="text/javascript">
         var network;
+        var dataa = '{{data}}';
 
         // vue
         var app = new Vue({
@@ -146,52 +137,50 @@
                 if (event.key == 'Enter') {
                 }
 
-            
 
+                // draw graf
+                if (event.key == ' ') {
+                    // create an array with nodes
+                    var nodes = new vis.DataSet([
+                        { id: 1, group: 'users', label: 'Node 1' },
+                        { id: 2, group: 'users', label: 'Node 2' },
+                        { id: 3, group: 'objects', label: 'Node 3' },
+                        { id: 4, group: 'objects', label: 'Node 4' },
+                        { id: 5, group: 'objects', label: 'Node 5' },
+                        { id: 6, group: 'objects', label: 'Node 6' }
+                    ]);
 
-            // draw graf
-            if (event.key == ' ') {
-                // create an array with nodes
-                var nodes = new vis.DataSet([
-                    { id: 1, group: 'users', label: 'Node 1' },
-                    { id: 2, group: 'users', label: 'Node 2' },
-                    { id: 3, group: 'objects', label: 'Node 3' },
-                    { id: 4, group: 'objects', label: 'Node 4' },
-                    { id: 5, group: 'objects', label: 'Node 5' },
-                    { id: 6, group: 'objects', label: 'Node 6' }
-                ]);
+                    // create an array with edges
+                    var edges = new vis.DataSet([
+                        { from: 1, to: 3 },
+                        { from: 1, color: 'green', to: 2 },
+                        { from: 1, to: 5 },
+                        { from: 1, to: 6 },
+                        { from: 2, to: 4 },
+                        { from: 2, to: 5 },
+                        { from: 2, to: 6 }
 
-                // create an array with edges
-                var edges = new vis.DataSet([
-                    { from: 1, to: 3 },
-                    { from: 1, color: 'green', to: 2 },
-                    { from: 1, to: 5 },
-                    { from: 1, to: 6 },
-                    { from: 2, to: 4 },
-                    { from: 2, to: 5 },
-                    { from: 2, to: 6 }
+                    ]);
 
-                ]);
+                    // create a network
+                    var container = document.getElementById('mynetwork');
 
-                // create a network
-                var container = document.getElementById('mynetwork');
+                    // provide the data in the vis format
+                    var data = {
+                        nodes: nodes,
+                        edges: edges
+                    };
 
-                // provide the data in the vis format
-                var data = {
-                    nodes: nodes,
-                    edges: edges
-                };
+                    var options = {
+                        autoResize: true,
+                        height: '100%',
+                        width: '100%',
+                        locale: 'en',
+                        edges: {
+                            arrows: 'to',
 
-                var options = {
-                    autoResize: true,
-                    height: '100%',
-                    width: '100%',
-                    locale: 'en',
-                    edges: {
-                        arrows: 'to',
-
-                    },
-                    groups: {
+                        },
+                        groups: {
                             objects: {
                                 shape: 'icon',
                                 icon: {
@@ -209,35 +198,36 @@
                                     size: 50,
                                     color: '#aa22dd'
                                 }
-                            }},
-                    manipulation: {
-                        enabled: true,
-                        initiallyActive: false,
-                        addNode: function (nodeData, callback) {
-                            nodeData.shape = 'icon';
-                            nodeData.icon = {
+                            }
+                        },
+                        manipulation: {
+                            enabled: true,
+                            initiallyActive: false,
+                            addNode: function (nodeData, callback) {
+                                nodeData.shape = 'icon';
+                                nodeData.icon = {
                                     face: 'Ionicons',
                                     code: '\uf47e',
                                     size: 50,
                                     color: '#aa22dd'
                                 };
-                            callback(nodeData);
+                                callback(nodeData);
+                            },
+                            addEdge: true,
+                            editNode: true,
+                            editEdge: true,
+                            deleteNode: true,
+                            deleteEdge: true
                         },
-                        addEdge: true,
-                        editNode: true,
-                        editEdge: true,
-                        deleteNode: true,
-                        deleteEdge: true
-                    },
-                    interaction: {
-                        multiselect: true,
-                    },
-                }
+                        interaction: {
+                            multiselect: true,
+                        },
+                    }
 
-                // initialize your network!
-                network = new vis.Network(container, data, options);
+                    // initialize your network!
+                    network = new vis.Network(container, data, options);
+                }
             }
-        }
         }
     </script>
 </body>

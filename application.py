@@ -91,8 +91,8 @@ def emotional_page():
             # Get result
             querry =    '''
                             SELECT * 
-                            FROM get_actual_feelings('{}', md5('{}')) 
-                        '''.format(user,'helloworld')
+                            FROM get_group_info('{}', '{}', md5('{}'))
+                        '''.format('15-ИСбо-2(б)', user,'helloworld')
             result = emot_db.select(command=querry)
             print(result)
         else: 
